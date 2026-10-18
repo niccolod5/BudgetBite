@@ -1,0 +1,1472 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BudgetBite">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f4c4a">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>BudgetBite</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: app mobile a una colonna. Barra superiore fissa (logo + opzioni), tab bar in basso, fogli che salgono dal basso. */
+:root{
+  --bg:#eef3f2; --surface:#ffffff; --sunk:#e1eae8; --fg:#0f2726; --muted:#56706d; --line:#cfdcd9;
+  --accent:#0f6e67; --accent-soft:#d3ebe7; --on-accent:#ffffff;
+  --coin:#e9a325; --coin-deep:#b97a0c; --coin-soft:#fbecc9;
+  --home:#6a5bd1; --home-soft:#e6e2fa;
+  --warn:#c98a10; --bad:#cf3f2b; --bad-soft:#fbe3df;
+  --brand:#0f4c4a; --on-brand:#eaf6f4; --brand-muted:#a9cdc8;
+  --display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  --body:"Figtree",-apple-system,system-ui,sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1615; --surface:#13211f; --sunk:#1b2c2a; --fg:#e4f0ee; --muted:#8fa9a5; --line:#253a37;
+  --accent:#4cc3b5; --accent-soft:#163633; --on-accent:#05211e;
+  --coin:#f5bd4f; --coin-deep:#f0b23c; --coin-soft:#3a2e14;
+  --home:#a99cf5; --home-soft:#262245;
+  --warn:#eab04a; --bad:#f0806d; --bad-soft:#3b1d18;
+  --brand:#114a47; --on-brand:#eaf6f4; --brand-muted:#a9cdc8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1615; --surface:#13211f; --sunk:#1b2c2a; --fg:#e4f0ee; --muted:#8fa9a5; --line:#253a37;
+  --accent:#4cc3b5; --accent-soft:#163633; --on-accent:#05211e;
+  --coin:#f5bd4f; --coin-deep:#f0b23c; --coin-soft:#3a2e14;
+  --home:#a99cf5; --home-soft:#262245;
+  --warn:#eab04a; --bad:#f0806d; --bad-soft:#3b1d18;
+  --brand:#114a47; --on-brand:#eaf6f4; --brand-muted:#a9cdc8; color-scheme:dark}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,select,label,textarea{touch-action:manipulation}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em}
+h1{font-size:1.85rem;font-weight:800;line-height:1.1}
+h2{font-size:1.15rem;font-weight:800;line-height:1.2}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.hint{font-size:.82rem;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0;text-align:inherit;-webkit-user-select:none;user-select:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,select,textarea{font:inherit;font-size:16px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:12px;width:100%;min-width:0;display:block}
+input,select{height:50px;padding:0 14px;-webkit-appearance:none;appearance:none}
+textarea{padding:10px 12px;resize:vertical}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 22px,calc(100% - 13px) 22px;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px;text-overflow:ellipsis}
+input[type=date]{text-align:left;line-height:50px}
+input[type=date]::-webkit-date-and-time-value{text-align:left}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:.6}
+input[type=checkbox]{width:24px;height:24px;padding:0;flex:none;-webkit-appearance:checkbox;appearance:auto;accent-color:var(--accent)}
+input::placeholder{color:var(--muted);opacity:.8}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- layout ---------- */
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.appbar .in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:10px;min-height:64px}
+.appbar svg.logo{width:34px;height:34px;flex:none;border-radius:9px}
+.brandname{font-family:var(--display);font-weight:800;font-size:1.2rem;letter-spacing:-.02em;flex:1}
+.brandname em{font-style:normal;color:var(--coin-deep)}
+.apptitle{font-family:var(--display);font-weight:800;font-size:1.1rem;flex:1;text-align:center}
+.appbar .spacer{width:96px;flex:none}
+.iconbtn{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:var(--fg);background:var(--sunk);flex:none}
+.iconbtn svg{width:22px;height:22px}
+.backbtn{display:inline-flex;align-items:center;gap:2px;min-height:44px;width:96px;padding:0 12px 0 6px;border-radius:14px;background:var(--sunk);font-weight:700;flex:none}
+.backbtn svg{width:22px;height:22px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:6px calc(108px + env(safe-area-inset-bottom,0px))}
+.pagehead{margin:4px 0 16px;display:grid;gap:4px}
+.pagehead p{color:var(--muted);font-size:.92rem}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:28px 0 10px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2>*{min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.form{display:grid;gap:12px}
+.field{display:grid;gap:6px;min-width:0}
+.field>span{font-size:.8rem;color:var(--muted);font-weight:600}
+.mt{margin-top:14px}
+
+/* ---------- controls ---------- */
+.btn{background:var(--accent);color:var(--on-accent);border-radius:14px;min-height:50px;padding:0 18px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;line-height:1.2}
+.btn.ghost{background:var(--sunk);color:var(--fg)}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn.sm{min-height:40px;padding:0 14px;border-radius:12px;font-size:.9rem}
+.btn:disabled{opacity:.5}
+.btn:active,.iconbtn:active,.add:active,.ck:active,.rowbtn:active{transform:scale(.98)}
+.link{color:var(--accent);font-weight:700;min-height:40px;padding:0 4px}
+.link.danger{color:var(--bad)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--sunk);border-radius:14px;padding:4px;gap:4px}
+.seg button{min-height:42px;border-radius:11px;font-weight:700;font-size:.88rem;color:var(--muted);padding:4px 6px;text-align:center;line-height:1.15}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.checkrow{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:600}
+.x{width:40px;height:40px;border-radius:12px;color:var(--muted);flex:none;display:grid;place-items:center;font-size:1rem;line-height:1}
+.x:active{background:var(--sunk)}
+.chev{color:var(--muted);flex:none;width:18px;height:18px}
+.chip{display:inline-block;font-size:.7rem;font-weight:800;padding:4px 9px;border-radius:99px;background:var(--accent-soft);color:var(--accent);letter-spacing:.02em;white-space:nowrap}
+.chip.home{background:var(--home-soft);color:var(--home)}
+.chip.coin{background:var(--coin-soft);color:var(--coin-deep)}
+.chip.neutral{background:var(--sunk);color:var(--muted)}
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--r);padding:18px;display:grid;gap:12px}
+
+/* ---------- budget hero ---------- */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px;display:grid;gap:12px}
+.hero.brand{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.hero.brand .label,.hero.brand .muted{color:var(--brand-muted)}
+.hero .figs{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.hero .big{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;letter-spacing:-.03em}
+.hero .side{text-align:right;font-size:.85rem}
+.hero .note{font-size:.82rem}
+.over{color:var(--bad)!important}
+.hero.brand .over{color:#ffb3a6!important}
+.sbar{display:flex;height:12px;background:var(--sunk);border-radius:99px;overflow:hidden;gap:2px}
+.hero.brand .sbar{background:rgba(255,255,255,.14)}
+.sbar i{display:block;height:100%;border-radius:99px;transition:width .35s}
+.sbar .f{background:var(--accent)} .sbar .e{background:var(--coin)}
+.hero.brand .sbar .f{background:#5fd3c4}
+.sbar.warn i{background:var(--warn)!important} .sbar.bad i{background:var(--bad)!important}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.84rem}
+.legend b{font-weight:700}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.dot.f{background:var(--accent)} .dot.e{background:var(--coin)}
+.hero.brand .dot.f{background:#5fd3c4}
+
+/* ---------- week ---------- */
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 14px}
+.weeknav .mid{text-align:center;min-width:0;display:grid;justify-items:center;gap:2px}
+.weeknav .mid .link{min-height:28px;font-size:.82rem}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 6px;margin-bottom:10px}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.day.past{opacity:.8}
+.dhead{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.dname{font-family:var(--display);font-weight:800;font-size:1.05rem}
+.slot{display:grid;grid-template-columns:58px minmax(0,1fr) 40px;gap:8px;align-items:start;padding:8px 0;border-top:1px dashed var(--line)}
+.slot:first-of-type{border-top:0}
+.slot>.label{padding-top:11px}
+.meals{display:grid;gap:6px;min-width:0}
+.meal{background:var(--accent-soft);border-radius:12px;display:flex;align-items:center;min-height:40px}
+.meal .mt-btn{flex:1;min-width:0;padding:8px 4px 8px 10px;font-size:.92rem;display:grid;gap:1px}
+.meal .mt-btn b{font-weight:700;overflow-wrap:anywhere}
+.meal .mt-btn span{color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
+.meal .x{width:36px;height:36px}
+.none{color:var(--muted);padding-top:9px}
+.add{width:40px;height:40px;border-radius:12px;background:var(--sunk);color:var(--accent);display:grid;place-items:center}
+.add svg{width:20px;height:20px}
+
+/* ---------- pantry ---------- */
+.item{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 6px;display:grid;gap:8px}
+.item .h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.item .h b{font-weight:700;overflow-wrap:anywhere;min-width:0}
+.item .h .q{flex:none}
+.item.done .h b{color:var(--muted)}
+.ibar{height:8px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.ibar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.uses{font-size:.8rem;color:var(--muted)}
+.actions{display:flex;justify-content:flex-end;gap:4px;flex-wrap:wrap;margin-top:-4px}
+
+/* ---------- list ---------- */
+.li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);min-height:56px}
+.li .nm{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:500}
+.li .nm span{color:var(--muted);font-size:.85rem;margin-left:6px;font-weight:400}
+.li.on .nm{color:var(--muted);text-decoration:line-through}
+.ck{width:40px;height:40px;border-radius:12px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:var(--on-accent);background:var(--surface)}
+.ck svg{width:20px;height:20px}
+.li.on .ck{background:var(--accent);border-color:var(--accent)}
+.endbar{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom,0px));margin-top:16px;display:grid}
+.endbar .btn{box-shadow:0 8px 22px rgba(10,40,38,.25);min-height:54px}
+
+/* ---------- money rows ---------- */
+.rowbtn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 2px;border-bottom:1px solid var(--line);min-height:60px}
+.rowbtn .l{flex:1;min-width:0;display:grid;gap:2px}
+.rowbtn .l b{font-weight:700;overflow-wrap:anywhere}
+.rowbtn .amt{font-weight:700;flex:none}
+
+/* ---------- analytics ---------- */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:4px;align-content:start;min-width:0}
+.tile .v{font-family:var(--display);font-weight:800;font-size:1.35rem;line-height:1.1;letter-spacing:-.02em}
+.tile .s{font-size:.78rem;color:var(--muted)}
+.tile.wide{grid-column:1/-1}
+.good{color:var(--accent)} .badc{color:var(--bad)}
+.pill{display:inline-block;font-size:.72rem;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:var(--accent-soft);color:var(--accent)} .pill.no{background:var(--bad-soft);color:var(--bad)} .pill.mid{background:var(--coin-soft);color:var(--coin-deep)}
+.pace{display:grid;gap:14px}
+.pace .r{display:grid;gap:6px}
+.pace .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chart{position:relative;height:150px;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;align-items:end;margin-top:22px}
+.chart .col{height:100%;display:flex;flex-direction:column-reverse;gap:2px;min-width:0}
+.chart .col i{display:block;border-radius:5px;width:100%}
+.chart .col i.f{background:var(--accent)} .chart .col i.e{background:var(--coin)}
+.chart .col.cur i{opacity:.5}
+.chart .bl{position:absolute;left:0;right:0;border-top:2px dashed var(--muted);pointer-events:none}
+.chart .bl span{position:absolute;right:0;bottom:4px;font-size:.7rem;color:var(--muted);background:var(--surface);padding:0 4px;border-radius:4px}
+.xl{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;font-size:.66rem;color:var(--muted);text-align:center;margin-top:6px}
+.tablewrap{overflow-x:auto}
+.mtab{width:100%;border-collapse:collapse;font-size:.88rem}
+.mtab th{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;text-align:right;padding:0 0 8px 8px;white-space:nowrap}
+.mtab th:first-child,.mtab td:first-child{text-align:left;padding-left:0}
+.mtab td{text-align:right;padding:9px 0 9px 8px;border-top:1px solid var(--line);white-space:nowrap}
+.hbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;font-size:.9rem}
+.hbar .b{grid-column:1/-1;height:8px;background:var(--sunk);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.hbar .b i{display:block;height:100%;background:var(--coin);border-radius:99px}
+.piggy .big{font-family:var(--display);font-size:2rem;font-weight:800;line-height:1;letter-spacing:-.02em}
+
+/* ---------- settings ---------- */
+.opt{display:grid;gap:8px;padding:16px 0;border-top:1px solid var(--line)}
+.opt:first-child{border-top:0;padding-top:0}
+.opt:last-child{padding-bottom:0}
+.opt .t{font-weight:700}
+.favrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.favrow:first-of-type{border-top:0}
+.favrow .nm{flex:1;min-width:0;display:grid}
+.favrow .nm span{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
+
+/* ---------- tab bar ---------- */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(4px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px));display:flex;justify-content:center}
+.tabs .in{display:grid;grid-template-columns:repeat(6,1fr);width:100%;max-width:560px}
+.tabs button{min-height:54px;padding:6px 0;border-radius:14px;font-weight:700;font-size:.64rem;letter-spacing:-.01em;color:var(--muted);display:grid;justify-items:center;align-content:center;gap:3px;text-align:center}
+.tabs button svg{width:24px;height:24px;padding:2px 8px;box-sizing:content-box;margin:-2px 0;border-radius:10px}
+.tabs button[aria-selected="true"]{color:var(--accent)}
+.tabs button[aria-selected="true"] svg{background:var(--accent-soft)}
+
+/* ---------- sheets ---------- */
+.scrim{position:fixed;inset:0;background:rgba(5,20,19,.5);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:24px 24px 0 0;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.6}}
+.sheet .grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:-4px auto 2px}
+.sheet .head{display:grid;gap:4px}
+.ingr{display:grid;grid-template-columns:minmax(0,1fr) 96px 40px;gap:6px;align-items:end}
+.ingr .ingleft{grid-column:1/-1;margin-top:-2px}
+.ingr+.ingr{padding-top:10px;border-top:1px dashed var(--line)}
+.favs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.favs::-webkit-scrollbar{display:none}
+.favchip{flex:none;min-height:40px;padding:0 14px;border-radius:99px;background:var(--coin-soft);color:var(--coin-deep);font-weight:700;font-size:.9rem;white-space:nowrap}
+.favchip[aria-pressed="true"]{background:var(--coin);color:#3a2700}
+.warnbox{background:var(--coin-soft);border-radius:14px;padding:12px 14px;display:grid;gap:8px;font-size:.9rem}
+.warnbox ul{margin:0;padding-left:18px}
+.warnbox b{color:var(--coin-deep)}
+.steps{display:flex;gap:4px}.steps i{flex:1;height:5px;border-radius:9px;background:var(--line)}.steps i.on{background:var(--accent)}
+.sum{margin:0;padding-left:18px}.sum li{padding:3px 0}
+
+/* ---------- toast & keyboard ---------- */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 8px 8px 16px;border-radius:14px;font-size:.9rem;font-weight:600;z-index:45;width:max-content;max-width:calc(100% - 32px);display:flex;align-items:center;gap:12px;min-height:44px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast span{padding-right:8px}
+.toast button{color:var(--coin);font-weight:800;min-height:36px;padding:0 10px;border-radius:10px;flex:none}
+.kbdone{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(16px,env(safe-area-inset-right,0px));background:var(--fg);color:var(--bg);border-radius:99px;min-height:40px;padding:0 16px 0 12px;font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.kbdone svg{width:18px;height:18px}
+</style>
+
+<div id="bar"></div>
+<main class="wrap" id="app"></main>
+<nav class="tabs" id="tabs"></nav>
+<div id="sheetRoot"></div>
+<div id="toastRoot" aria-live="polite"></div>
+<div id="kbRoot"></div>
+
+<script>
+(() => {
+"use strict";
+
+/* =========================================================
+   1. TESTI (italiano / inglese)
+   ========================================================= */
+const STR = {
+ it: {
+  locale:"it-IT",
+  days:["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"],
+  months:["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"],
+  pcs:"pz",
+  tabWeek:"Settimana", tabList:"Lista", tabPantry:"Dispensa", tabShop:"Spesa", tabExtra:"Extra", tabStats:"Analisi",
+  settings:"Opzioni", back:"Indietro", kbDone:"Fine", undo:"Annulla", tRestored:"Ripristinato",
+  cancel:"Annulla", save:"Salva", add:"Aggiungi", del:"Elimina", edit:"Modifica", close:"Chiudi", confirm:"Conferma", next:"Avanti", no:"No",
+  name:"Nome", qty:"Quantità", qtyOpt:"Quantità (facoltativa)", unit:"Unità", amount:"Importo €", date:"Data", left:"restano",
+  qtyIn:u=>`Quantità (${u})`, inPantryLeft:(q,n)=>`In dispensa ne ${n===1?"resta":"restano"} ${q}`,
+  weekSub:"Pranzi e cene, con gli ingredienti presi dalla dispensa.",
+  thisWeek:"Questa settimana", nextWeek:"Prossima settimana", lastWeek:"Settimana scorsa", backToday:"Torna a oggi",
+  prevWeekA:"Settimana precedente", nextWeekA:"Settimana successiva", today:"oggi", lunch:"Pranzo", dinner:"Cena",
+  addMealFor:(s,d)=>`Aggiungi ${s.toLowerCase()}, ${d}`, removeMeal:"Rimuovi il pasto", removedIng:"ingrediente rimosso", meal:"Pasto",
+  emptyPantryT:"La dispensa è vuota",
+  emptyPantryD:"Dopo la spesa aggiungi in Dispensa cosa hai comprato e quanto, oppure usa la Lista. Poi qui assegni le porzioni a pranzi e cene e vedi cosa resta.",
+  goPantry:"Vai alla dispensa", tryExample:"Prova un esempio",
+  mealAddT:"Aggiungi un pasto", mealEditT:"Modifica il pasto", favorites:"Piatti preferiti", mealName:"Nome del piatto", phMeal:"es. Pesce al forno",
+  ingFromPantry:"Ingredienti dalla dispensa", ingredient:"Ingrediente", removeIng:"Togli l'ingrediente", anotherIng:"+ Aggiungi ingrediente",
+  noIngYet:"Nessun ingrediente. Puoi salvare anche solo il nome del piatto.",
+  pantryEmptyHint:"La dispensa è vuota. Puoi salvare solo il nome del piatto, oppure aggiungere prima i prodotti in Dispensa.",
+  mealHint:"Le quantità vengono scalate dalla dispensa. Quello che avanza resta disponibile per altri pasti.",
+  saveFav:"Salva tra i piatti preferiti", updateFav:"Aggiorna il piatto preferito con questi ingredienti",
+  favNeedsName:"Dai un nome al piatto per salvarlo tra i preferiti", mealNeedsSomething:"Scrivi il nome del piatto o aggiungi almeno un ingrediente",
+  tEachQty:"Ogni ingrediente ha bisogno di una quantità maggiore di zero", onlyLeft:(nm,q,n)=>`Di ${nm.toLowerCase()} ${n===1?"resta":"restano"} solo ${q}`,
+  missingT:"Non hai tutto in dispensa", missNone:n=>`${n}, da comprare`, missShort:(nm,q,n)=>`${nm}, ne ${n===1?"resta":"restano"} solo ${q}`,
+  toList:"Aggiungi alla lista", tAddedToList:k=>k===1?"1 prodotto aggiunto alla lista":`${k} prodotti aggiunti alla lista`, tAllInList:"È già tutto in lista",
+  tMealAdded:"Pasto aggiunto", tMealSaved:"Pasto aggiornato", tMealRemoved:"Pasto rimosso", tFavShort:"salvato tra i preferiti", deleteMeal:"Elimina il pasto",
+  pantrySub:"Quello che hai in casa e quanto ne resta.", food:"Alimentari", home:"Casa e igiene", foodShort:"Cibo", homeShort:"Casa",
+  addProduct:"Aggiungi un prodotto", addHomeProduct:"Aggiungi un prodotto per la casa", phFood:"es. Pesce surgelato", phHome:"es. Detersivo piatti",
+  available:"Disponibili", finished:"Finiti", show:"Mostra", hide:"Nascondi", inHome:"In casa",
+  emptyPantryList:"Qui compare quello che hai comprato, con la quantità che resta dopo aver pianificato i pasti.",
+  emptyHome:"Qui finiscono detersivi, prodotti per l'igiene e tutto ciò che non si mangia. Non compaiono tra gli ingredienti dei pasti.",
+  usedIn:"Usato in ", notUsed:"Non ancora usato", backToList:"Rimetti in lista", inListAlready:"Già in lista", finishedBtn:"Finito",
+  tAdded:n=>`${n} in dispensa`, tProductDeleted:"Prodotto eliminato", tHomeDone:"Prodotto tolto dalla casa", tToList:n=>`${n} in lista`,
+  editProduct:"Modifica il prodotto", alreadyUsed:q=>`Nei pasti è già previsto l'uso di ${q}, quindi la quantità totale non può essere inferiore.`,
+  qtyTooLow:q=>`Quantità troppo bassa, nei pasti è già previsto l'uso di ${q}`,
+  cantChangeKind:"Questo prodotto è già usato nei pasti, puoi passare solo a un'unità dello stesso tipo",
+  tNameQty:"Inserisci il nome e una quantità maggiore di zero", tSaved:"Salvato",
+  listTitle:"Lista della spesa", listSub:"Spunta i prodotti man mano che li metti nel carrello.", phList:"es. Pesce 300g", listAdd:"Prodotto da comprare",
+  autoCat:"Riconosci da solo",
+  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce, altrimenti te la chiede a fine spesa per gli alimentari. Detersivi, shampoo e simili vanno in Casa da soli, tocca l'etichetta per cambiarla.",
+  emptyList:"La lista è vuota. Aggiungi quello che vuoi comprare, poi al supermercato spunta i prodotti man mano.",
+  toBuy:"Da prendere", inCart:"Nel carrello", endShop:n=>`Fine spesa · ${n} ${n===1?"prodotto":"prodotti"}`,
+  check:"Spunta", uncheck:"Togli la spunta a", changeCat:"Cambia categoria di", removeFromList:"Togli dalla lista", tListRemoved:"Prodotto tolto dalla lista",
+  tWriteName:"Scrivi il nome del prodotto",
+  endLabel:"Fine spesa", endT:n=>`Aggiungo ${n===1?"1 prodotto":n+" prodotti"} alla dispensa?`, qtyToSet:"quantità da indicare",
+  willAsk:n=>n===1?"Per un prodotto ti chiederò la quantità o il peso.":`Per ${n} prodotti ti chiederò la quantità o il peso, uno alla volta.`,
+  productOf:(a,b)=>`Prodotto ${a} di ${b}`, howMuch:n=>`Che quantità di ${n} hai comprato?`,
+  lastStep:"Ultimo passo", howMuchSpent:"Quanto hai speso?", receiptTotal:"Totale scontrino €", phReceipt:"es. 34,80 (facoltativo)",
+  receiptHint:"Viene sottratto dal budget spesa di questa settimana. Puoi anche lasciarlo vuoto e registrarlo dopo in Spesa.", toPantry:"Metti in dispensa",
+  tQtyPos:"Inserisci una quantità maggiore di zero",
+  tShopDone:(n,a)=>`${n===1?"1 prodotto aggiunto":n+" prodotti aggiunti"} alla dispensa${a?", "+a+" sottratti":""}`,
+  fromList:"Spesa da lista",
+  shopSub:"Il budget della spesa, alimentari e casa insieme.", leftWeek:"Restano questa settimana", leftMonth:m=>`Restano a ${m}`,
+  spentOf:(a,b)=>`spesi ${a}<br>su ${b}`, carryPlus:a=>`Comprende ${a} avanzati nelle settimane precedenti`, carryMinus:a=>`Tolti ${a} sforati nelle settimane precedenti`,
+  logExpense:"Registra una spesa", phAmount:"es. 23,40", note:"Dove o cosa", phNote:"es. Conad (facoltativo)", subtract:"Sottrai dal budget",
+  expensesOf:m=>`Spese di ${m}`, noExpenses:"Nessuna spesa registrata questo mese.", seeStats:"Vedi l'analisi", editBudgets:"Modifica i budget",
+  editExpenseT:"Modifica la spesa", deleteExpense:"Elimina la spesa", tAmount:"Inserisci un importo valido", tSubtracted:a=>`${a} sottratti dal budget`,
+  tExpenseSaved:"Spesa aggiornata", tExpenseDeleted:"Spesa eliminata", shopEntry:"Spesa",
+  extraSub:"Soldi per tutto il resto, fuori dalla spesa.", extraWhat:"Cosa e quanto", phExtra:"es. gelato 3,5€", deduct:"Scala",
+  extraHint:"Scrivi cosa e quanto, come “cena venerdì 25€” o “cinema 9”. La categoria viene riconosciuta da sola, tocca una voce per cambiarla.",
+  extrasOf:m=>`Extra di ${m}`, noExtras:"Ancora niente questo mese.", extraDefault:"Spesa extra",
+  tExtraNeedAmt:"Scrivi anche l'importo, es. gelato 3,5€", tExtraDone:(n,a)=>`${n} · ${a} scalati`,
+  editExtraT:"Modifica l'extra", description:"Descrizione", category:"Categoria", tExtraSaved:"Extra aggiornato", tExtraDeleted:"Extra eliminato", deleteExtra:"Elimina l'extra",
+  xcat:{food:"Cibo e bar",fun:"Uscite e svago",transport:"Trasporti",shopping:"Shopping e regali",subs:"Abbonamenti",health:"Salute e sport",other:"Altro"},
+  statsSub:"Come stai andando con spesa, extra e budget.", pWeek:"Settimana", pMonth:"Mese", totalOut:"Uscite totali",
+  totalBudget:b=>`su un budget di ${b}`, shopL:"Spesa", extraL:"Extra", leftTot:a=>`Restano ${a}`, overTot:a=>`Sforato di ${a}`,
+  pace:"Ritmo", perDay:"Media al giorno", projection:"Proiezione a fine periodo", daysLeft:"Giorni rimasti", canSpend:"Puoi spendere al giorno",
+  onTrack:"in linea", atRisk:"a rischio", over:"sforato", projOf:(a,b)=>`proiezione ${a} su ${b}`,
+  last8:"Ultime 8 settimane", inBudget:(n,m)=>`${n} ${n===1?"settimana":"settimane"} su ${m} dentro il budget totale.`, budgetLine:"budget",
+  curWeekNote:"La settimana in corso è più chiara.", baseBudgetNote:"La linea indica il budget base, senza riporti.",
+  last6:"Ultimi 6 mesi", colMonth:"Mese", colShop:"Spesa", colExtra:"Extra", colDiff:"Saldo",
+  extraByCat:"Extra per categoria", topExtra:"Le voci più costose", noExtraP:"Nessun extra in questo periodo.",
+  shopStats:"Spese al supermercato", trips:"Spese registrate", avgTrip:"Scontrino medio", maxTrip:"Scontrino più alto",
+  kitchen:"Cucina e dispensa", mealsPlanned:"Pasti pianificati questa settimana", ofN:n=>`su ${n}`, boughtFood:"Alimentari comprati",
+  boughtHome:"Prodotti per la casa comprati", inPantryNow:"Disponibili in dispensa", favCount:"Piatti preferiti",
+  piggyT:"Salvadanaio", piggyWeeks:w=>w===0?"Il primo avanzo arriva a fine settimana.":`Messi da parte in ${w===1?"1 settimana":w+" settimane"}, al netto dei prelievi.`,
+  goalProgress:(p,n,a)=>n?`${p}% dell'obiettivo ${n} (${a})`:`${p}% dell'obiettivo di ${a}`,
+  useFromPiggy:"Usa dal salvadanaio", piggyOutT:"Usa dal salvadanaio", phPiggyNote:"es. Weekend fuori (facoltativo)", tPiggyOut:a=>`${a} presi dal salvadanaio`,
+  withdrawals:"Prelievi", tWithdrawalDeleted:"Prelievo eliminato", piggyOutDefault:"Prelievo",
+  carryT:"Riporto della settimana", carryNow:(s,e)=>`Questa settimana hai ${s} sulla spesa e ${e} sugli extra rispetto al budget base.`,
+  carryOffT:"Avanzo settimanale", carryOffD:"Nelle Opzioni puoi scegliere di riportare alla settimana dopo quello che avanza, o di metterlo in un salvadanaio.", goSettings:"Apri le Opzioni",
+  sAppearance:"Aspetto", sAppearanceD:"Chiaro, scuro o come il telefono.", themeSystem:"Sistema", themeLight:"Chiaro", themeDark:"Scuro",
+  sLang:"Lingua", sUnits:"Unità di misura", sUnitsD:"Le quantità già inserite vengono convertite solo a schermo.", metric:"g · kg · ml · lt", imperial:"oz · lb · fl oz",
+  sWeek:"La settimana inizia", monday:"Lunedì", sunday:"Domenica",
+  sBudgets:"Budget", sShopBudget:"Spesa", sExtraBudget:"Extra", weekly:"Settimanale €", monthly:"Mensile €", saveBudgets:"Salva i budget",
+  tBudget:"I budget devono essere maggiori di zero", tBudgetSaved:"Budget salvati",
+  sCarry:"Avanzo settimanale", sCarryD:"Cosa fare con quello che resta a fine settimana nei budget di spesa ed extra.",
+  carryOff:"Niente", carryNext:"Riporta", carryPiggy:"Salvadanaio",
+  carryNextHint:"Quello che avanza si aggiunge al budget della settimana dopo. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
+  carryPiggyHint:"Quello che avanza ogni settimana finisce nel salvadanaio, che trovi in Analisi. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
+  goalName:"Obiettivo (facoltativo)", phGoal:"es. Vacanza", goalAmount:"Cifra da raggiungere €", phGoalAmt:"es. 300", saveGoal:"Salva l'obiettivo", tGoalSaved:"Obiettivo salvato",
+  sFavs:"Piatti preferiti", sFavsD:"Si creano dal foglio di un pasto, con “Salva tra i piatti preferiti”.", noFavs:"Ancora nessun piatto preferito.",
+  removeFav:"Togli dai preferiti", tFavRemoved:"Piatto tolto dai preferiti",
+  sData:"Dati", sync:{local:"Salvati su questo dispositivo",synced:"Sincronizzati e salvati",ro:"Solo lettura, modifiche salvate qui",fail:"Sincronizzazione non riuscita, salvati qui"},
+  bkHint:"Il backup è un testo che contiene tutti i tuoi dati. Serve per conservarli o spostarli su un'altra versione dell'app.",
+  bkCopy:"Copia il backup", bkCopied:"Backup copiato. Incollalo in Note per conservarlo.", bkSelect:"Copia non riuscita. Il testo è selezionato, copialo a mano.",
+  bkRestore:"Ripristina da backup", bkPaste:"Incolla qui il testo del backup", bkImport:"Importa e sostituisci", bkBad:"Il testo incollato non è un backup di BudgetBite", bkDone:"Dati ripristinati",
+  loadExample:"Carica dati di esempio", clearAll:"Cancella tutti i dati", clearQ:"Cancellare spesa, dispensa, pasti, lista, extra e preferiti? I budget e le opzioni restano.", yesClear:"Sì, cancella", tCleared:"Dati cancellati",
+  tExample:"Esempio caricato, puoi eliminarlo quando vuoi",
+  ex:{fish:"Pesce surgelato",pasta:"Pasta",zucc:"Zucchine",meal1:"Pesce con zucchine",meal2:"Pasta e zucchine",shop:"Spesa di esempio",x1:"Gelato",x2:"Cinema"}
+ },
+ en: {
+  locale:"en-GB",
+  days:["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  months:["January","February","March","April","May","June","July","August","September","October","November","December"],
+  pcs:"pcs",
+  tabWeek:"Week", tabList:"List", tabPantry:"Pantry", tabShop:"Groceries", tabExtra:"Extras", tabStats:"Stats",
+  settings:"Settings", back:"Back", kbDone:"Done", undo:"Undo", tRestored:"Restored",
+  cancel:"Cancel", save:"Save", add:"Add", del:"Delete", edit:"Edit", close:"Close", confirm:"Confirm", next:"Next", no:"No",
+  name:"Name", qty:"Quantity", qtyOpt:"Quantity (optional)", unit:"Unit", amount:"Amount €", date:"Date", left:"left",
+  qtyIn:u=>`Quantity (${u})`, inPantryLeft:q=>`${q} left in the pantry`,
+  weekSub:"Lunches and dinners, with ingredients taken from the pantry.",
+  thisWeek:"This week", nextWeek:"Next week", lastWeek:"Last week", backToday:"Back to today",
+  prevWeekA:"Previous week", nextWeekA:"Next week", today:"today", lunch:"Lunch", dinner:"Dinner",
+  addMealFor:(s,d)=>`Add ${s.toLowerCase()}, ${d}`, removeMeal:"Remove meal", removedIng:"removed ingredient", meal:"Meal",
+  emptyPantryT:"Your pantry is empty",
+  emptyPantryD:"After shopping, add what you bought and how much in the Pantry, or use the List. Then plan lunches and dinners here and see what's left.",
+  goPantry:"Go to pantry", tryExample:"Try an example",
+  mealAddT:"Add a meal", mealEditT:"Edit meal", favorites:"Favourite dishes", mealName:"Dish name", phMeal:"e.g. Baked fish",
+  ingFromPantry:"Ingredients from the pantry", ingredient:"Ingredient", removeIng:"Remove ingredient", anotherIng:"+ Add ingredient",
+  noIngYet:"No ingredients. You can also save just the dish name.",
+  pantryEmptyHint:"Your pantry is empty. You can save just the dish name, or add products to the Pantry first.",
+  mealHint:"Quantities are taken from the pantry. Whatever is left stays available for other meals.",
+  saveFav:"Save as a favourite dish", updateFav:"Update the favourite dish with these ingredients",
+  favNeedsName:"Give the dish a name to save it as a favourite", mealNeedsSomething:"Type the dish name or add at least one ingredient",
+  tEachQty:"Each ingredient needs a quantity above zero", onlyLeft:(n,q)=>`Only ${q} of ${n} left`,
+  missingT:"Not everything is in the pantry", missNone:n=>`${n}, to buy`, missShort:(n,q)=>`${n}, only ${q} left`,
+  toList:"Add to list", tAddedToList:k=>k===1?"1 item added to the list":`${k} items added to the list`, tAllInList:"Everything is already on the list",
+  tMealAdded:"Meal added", tMealSaved:"Meal updated", tMealRemoved:"Meal removed", tFavShort:"saved as favourite", deleteMeal:"Delete meal",
+  pantrySub:"What you have at home and how much is left.", food:"Food", home:"Home & hygiene", foodShort:"Food", homeShort:"Home",
+  addProduct:"Add a product", addHomeProduct:"Add a household product", phFood:"e.g. Frozen fish", phHome:"e.g. Dish soap",
+  available:"Available", finished:"Used up", show:"Show", hide:"Hide", inHome:"At home",
+  emptyPantryList:"What you bought shows up here, with what's left after planning your meals.",
+  emptyHome:"Detergents, toiletries and anything you don't eat go here. They never show up as meal ingredients.",
+  usedIn:"Used in ", notUsed:"Not used yet", backToList:"Add back to list", inListAlready:"On the list", finishedBtn:"Used up",
+  tAdded:n=>`${n} added to the pantry`, tProductDeleted:"Product deleted", tHomeDone:"Product removed from home", tToList:n=>`${n} added to the list`,
+  editProduct:"Edit product", alreadyUsed:q=>`${q} is already planned in meals, so the total can't be lower.`,
+  qtyTooLow:q=>`Quantity too low, ${q} is already planned in meals`,
+  cantChangeKind:"This product is already used in meals, you can only switch to a unit of the same kind",
+  tNameQty:"Enter a name and a quantity above zero", tSaved:"Saved",
+  listTitle:"Shopping list", listSub:"Tick products off as they go in the cart.", phList:"e.g. Fish 300g", listAdd:"Product to buy",
+  autoCat:"Detect automatically",
+  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up, otherwise it asks you for food items when you finish shopping. Detergents, shampoo and similar go to Home on their own; tap the tag to change it.",
+  emptyList:"The list is empty. Add what you want to buy, then tick items off at the store.",
+  toBuy:"To buy", inCart:"In the cart", endShop:n=>`Finish shopping · ${n} ${n===1?"item":"items"}`,
+  check:"Tick", uncheck:"Untick", changeCat:"Change category of", removeFromList:"Remove from list", tListRemoved:"Removed from the list",
+  tWriteName:"Type the product name",
+  endLabel:"Finish shopping", endT:n=>`Add ${n===1?"1 item":n+" items"} to the pantry?`, qtyToSet:"quantity needed",
+  willAsk:n=>n===1?"I'll ask you the quantity or weight of one item.":`I'll ask you the quantity or weight of ${n} items, one at a time.`,
+  productOf:(a,b)=>`Item ${a} of ${b}`, howMuch:n=>`What quantity of ${n} did you buy?`,
+  lastStep:"Last step", howMuchSpent:"How much did you spend?", receiptTotal:"Receipt total €", phReceipt:"e.g. 34.80 (optional)",
+  receiptHint:"It's subtracted from this week's grocery budget. You can leave it empty and log it later in Groceries.", toPantry:"Put in pantry",
+  tQtyPos:"Enter a quantity above zero",
+  tShopDone:(n,a)=>`${n===1?"1 item":n+" items"} added to the pantry${a?", "+a+" subtracted":""}`,
+  fromList:"Shopping from list",
+  shopSub:"Your grocery budget, food and household together.", leftWeek:"Left this week", leftMonth:m=>`Left in ${m}`,
+  spentOf:(a,b)=>`spent ${a}<br>of ${b}`, carryPlus:a=>`Includes ${a} left over from previous weeks`, carryMinus:a=>`Minus ${a} overspent in previous weeks`,
+  logExpense:"Log an expense", phAmount:"e.g. 23.40", note:"Where or what", phNote:"e.g. Tesco (optional)", subtract:"Subtract from budget",
+  expensesOf:m=>`Expenses in ${m}`, noExpenses:"No expenses logged this month.", seeStats:"See stats", editBudgets:"Change budgets",
+  editExpenseT:"Edit expense", deleteExpense:"Delete expense", tAmount:"Enter a valid amount", tSubtracted:a=>`${a} subtracted from budget`,
+  tExpenseSaved:"Expense updated", tExpenseDeleted:"Expense deleted", shopEntry:"Groceries",
+  extraSub:"Money for everything else, outside groceries.", extraWhat:"What and how much", phExtra:"e.g. ice cream 3.5€", deduct:"Deduct",
+  extraHint:"Type what and how much, like “friday dinner 25€” or “cinema 9”. The category is detected automatically; tap an entry to change it.",
+  extrasOf:m=>`Extras in ${m}`, noExtras:"Nothing yet this month.", extraDefault:"Extra expense",
+  tExtraNeedAmt:"Add the amount too, e.g. ice cream 3.5€", tExtraDone:(n,a)=>`${n} · ${a} deducted`,
+  editExtraT:"Edit extra", description:"Description", category:"Category", tExtraSaved:"Extra updated", tExtraDeleted:"Extra deleted", deleteExtra:"Delete extra",
+  xcat:{food:"Eating out",fun:"Going out & fun",transport:"Transport",shopping:"Shopping & gifts",subs:"Subscriptions",health:"Health & sport",other:"Other"},
+  statsSub:"How you're doing with groceries, extras and budgets.", pWeek:"Week", pMonth:"Month", totalOut:"Total spending",
+  totalBudget:b=>`of a ${b} budget`, shopL:"Groceries", extraL:"Extras", leftTot:a=>`${a} left`, overTot:a=>`Over by ${a}`,
+  pace:"Pace", perDay:"Daily average", projection:"Projected by period end", daysLeft:"Days left", canSpend:"You can spend per day",
+  onTrack:"on track", atRisk:"at risk", over:"over", projOf:(a,b)=>`projected ${a} of ${b}`,
+  last8:"Last 8 weeks", inBudget:(n,m)=>`${n} of ${m} ${m===1?"week":"weeks"} within the total budget.`, budgetLine:"budget",
+  curWeekNote:"The current week is lighter.", baseBudgetNote:"The line shows the base budget, without carry-over.",
+  last6:"Last 6 months", colMonth:"Month", colShop:"Groc.", colExtra:"Extras", colDiff:"Balance",
+  extraByCat:"Extras by category", topExtra:"Most expensive entries", noExtraP:"No extras in this period.",
+  shopStats:"Grocery trips", trips:"Expenses logged", avgTrip:"Average receipt", maxTrip:"Biggest receipt",
+  kitchen:"Kitchen and pantry", mealsPlanned:"Meals planned this week", ofN:n=>`of ${n}`, boughtFood:"Food items bought",
+  boughtHome:"Household items bought", inPantryNow:"Available in pantry", favCount:"Favourite dishes",
+  piggyT:"Savings jar", piggyWeeks:w=>w===0?"The first leftover arrives at the end of the week.":`Saved over ${w===1?"1 week":w+" weeks"}, net of withdrawals.`,
+  goalProgress:(p,n,a)=>n?`${p}% of the ${n} goal (${a})`:`${p}% of the ${a} goal`,
+  useFromPiggy:"Use from savings jar", piggyOutT:"Use from savings jar", phPiggyNote:"e.g. Weekend away (optional)", tPiggyOut:a=>`${a} taken from the savings jar`,
+  withdrawals:"Withdrawals", tWithdrawalDeleted:"Withdrawal deleted", piggyOutDefault:"Withdrawal",
+  carryT:"This week's carry-over", carryNow:(s,e)=>`This week you have ${s} on groceries and ${e} on extras compared to the base budget.`,
+  carryOffT:"Weekly leftover", carryOffD:"In Settings you can carry what's left over into next week, or put it in a savings jar.", goSettings:"Open Settings",
+  sAppearance:"Appearance", sAppearanceD:"Light, dark or follow the phone.", themeSystem:"System", themeLight:"Light", themeDark:"Dark",
+  sLang:"Language", sUnits:"Units", sUnitsD:"Quantities you already entered are converted on screen only.", metric:"g · kg · ml · lt", imperial:"oz · lb · fl oz",
+  sWeek:"Week starts on", monday:"Monday", sunday:"Sunday",
+  sBudgets:"Budgets", sShopBudget:"Groceries", sExtraBudget:"Extras", weekly:"Weekly €", monthly:"Monthly €", saveBudgets:"Save budgets",
+  tBudget:"Budgets must be above zero", tBudgetSaved:"Budgets saved",
+  sCarry:"Weekly leftover", sCarryD:"What to do with what's left at the end of the week in the grocery and extras budgets.",
+  carryOff:"Nothing", carryNext:"Carry over", carryPiggy:"Savings jar",
+  carryNextHint:"What's left over is added to next week's budget. If you overspend, the difference is taken off. It starts from this week.",
+  carryPiggyHint:"What's left over each week goes into the savings jar, which you'll find in Stats. If you overspend, the difference is taken off. It starts from this week.",
+  goalName:"Goal (optional)", phGoal:"e.g. Holiday", goalAmount:"Target amount €", phGoalAmt:"e.g. 300", saveGoal:"Save goal", tGoalSaved:"Goal saved",
+  sFavs:"Favourite dishes", sFavsD:"Create them from a meal sheet with “Save as a favourite dish”.", noFavs:"No favourite dishes yet.",
+  removeFav:"Remove from favourites", tFavRemoved:"Dish removed from favourites",
+  sData:"Data", sync:{local:"Saved on this device",synced:"Synced and saved",ro:"Read only, changes saved here",fail:"Sync failed, saved here"},
+  bkHint:"The backup is a text holding all your data. Use it to keep a copy or move it to another version of the app.",
+  bkCopy:"Copy backup", bkCopied:"Backup copied. Paste it in Notes to keep it.", bkSelect:"Copy failed. The text is selected, copy it manually.",
+  bkRestore:"Restore from backup", bkPaste:"Paste the backup text here", bkImport:"Import and replace", bkBad:"The pasted text isn't a BudgetBite backup", bkDone:"Data restored",
+  loadExample:"Load example data", clearAll:"Delete all data", clearQ:"Delete groceries, pantry, meals, list, extras and favourites? Budgets and settings stay.", yesClear:"Yes, delete", tCleared:"Data deleted",
+  tExample:"Example loaded, delete it whenever you like",
+  ex:{fish:"Frozen fish",pasta:"Pasta",zucc:"Courgettes",meal1:"Fish with courgettes",meal2:"Pasta with courgettes",shop:"Example shopping",x1:"Ice cream",x2:"Cinema"}
+ }
+};
+
+/* =========================================================
+   2. STATO E SALVATAGGIO
+   ========================================================= */
+const LS_KEY = "spesa-pasti-v1";
+const LIST_KEYS = ["items","expenses","meals","list","extras","favs","piggyOut"];
+const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, carry:"off", carryFrom:null});
+const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
+  items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, settings:blankSettings()});
+function normalize(s){
+  const o = Object.assign(blank(), s && typeof s==="object" ? s : {});
+  o.settings = Object.assign(blankSettings(), (s && s.settings) || {});
+  for(const k of LIST_KEYS) if(!Array.isArray(o[k])) o[k] = [];
+  return o;
+}
+
+let state = blank();
+const ui = {tab:"week", prevTab:"week", weekOffset:0, showDone:false, pantryCat:"food", listCat:null, statsPeriod:"week", restore:false, confirmClear:false};
+let dbRef = null, dirty = false, writing = false, saveTimer = null, syncKey = "local";
+const T = () => STR[state.settings.lang] || STR.it;
+
+function loadLocal(){ try{ const raw = localStorage.getItem(LS_KEY); if(raw){ const s = JSON.parse(raw); if(s && s.v===1) state = normalize(s); } }catch(e){} }
+function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function commit(){ saveLocal(); render(); if(dbRef){ dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(flush, 500); } }
+async function flush(){
+  if(!dbRef || writing || !dirty) return;
+  writing = true; dirty = false;
+  try{ await dbRef.set(JSON.parse(JSON.stringify(state))); syncKey = "synced"; }
+  catch(e){ syncKey = e && e.code==="invalid_argument" ? "ro" : "fail"; if(e && e.code==="unavailable"){ dirty = true; setTimeout(flush, 1500 + Math.random()*1000); } }
+  writing = false; updateSync(); if(dirty) flush();
+}
+function updateSync(){ const el = $("#sync"); if(el) el.textContent = T().sync[syncKey]; }
+async function connect(){
+  try{
+    if(!window.claude || !window.claude.use) return;
+    const db = await window.claude.use("db"); if(!db) return;
+    dbRef = db.doc("planner/state");
+    let first = true;
+    dbRef.onSnapshot(snap => {
+      if(snap.metadata.hasPendingWrites) return;
+      if(snap.exists){
+        if(!dirty && !writing){ state = normalize(JSON.parse(JSON.stringify(snap.data()))); saveLocal(); applyTheme(); render(); }
+        syncKey = "synced";
+      } else if(first && LIST_KEYS.some(k => state[k].length)){ dirty = true; flush(); }
+      else syncKey = "synced";
+      first = false; updateSync();
+    }, () => { syncKey = "local"; updateSync(); });
+  }catch(e){}
+}
+
+/* =========================================================
+   3. UTILITÀ: formati, date, unità
+   ========================================================= */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num = v => { const n = parseFloat(String(v).trim().replace(/\s/g,"").replace(",", ".")); return isFinite(n) ? n : NaN; };
+const r2 = x => Math.round(x*100)/100;
+const eur = n => n.toLocaleString(T().locale, {style:"currency", currency:"EUR"});
+const qfmt = n => (Math.round(n*100)/100).toLocaleString(T().locale, {maximumFractionDigits:2});
+const moneyIn = n => n.toLocaleString(T().locale, {minimumFractionDigits:2, maximumFractionDigits:2, useGrouping:false});
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseIso = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const todayD = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+function sow(d){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() - state.settings.weekStart + 7) % 7); return x; }
+const weekRange = ws => [iso(ws), iso(addDays(ws,6))];
+const viewWeek = () => addDays(sow(new Date()), ui.weekOffset*7);
+const mon3 = d => T().months[d.getMonth()].slice(0,3);
+const dayLong = d => T().days[d.getDay()]+" "+d.getDate()+" "+T().months[d.getMonth()];
+const dayShort = d => T().days[d.getDay()].slice(0,3)+" "+d.getDate();
+function rangeLabel(ws){ const we = addDays(ws,6); return ws.getDate()+(ws.getMonth()!==we.getMonth() ? " "+mon3(ws) : "")+"–"+we.getDate()+" "+mon3(we); }
+function monthBounds(d = new Date()){ return [iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(new Date(d.getFullYear(), d.getMonth()+1, 0)), T().months[d.getMonth()]]; }
+const sameName = (a,b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+const cap = s => s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
+
+// Unità: le quantità restano nell'unità del prodotto, la conversione è solo a schermo.
+const F = {g:1, kg:1000, oz:28.349523, lb:453.59237, ml:1, l:1000, "fl oz":29.57353, pz:1};
+const DIM = {g:"m", kg:"m", oz:"m", lb:"m", ml:"v", l:"v", "fl oz":"v", pz:"c"};
+const METRIC = ["g","kg","ml","l","pz"], IMPERIAL = ["oz","lb","fl oz","pz"];
+const unitList = () => state.settings.units==="imperial" ? IMPERIAL : METRIC;
+const ul = u => u==="pz" ? T().pcs : u==="l" ? "lt" : u;
+function dispUnit(u){
+  if(state.settings.units==="imperial") return {g:"oz", kg:"lb", ml:"fl oz", l:"fl oz"}[u] || u;
+  return {oz:"g", lb:"kg", "fl oz":"ml"}[u] || u;
+}
+const toDisp = (q, u) => { const d = dispUnit(u); return [q*F[u]/F[d], d]; };
+const fromDisp = (q, d, u) => q*F[d]/F[u];
+const qn = (q, u) => Math.round(toDisp(q,u)[0]*100)/100;
+const qs = (q, u) => { if(q==null) return ""; const [a,d] = toDisp(q,u); return qfmt(a)+" "+ul(d); };
+
+/* =========================================================
+   4. LOGICA: dispensa, budget, riporti, categorie
+   ========================================================= */
+const itemById = id => state.items.find(i => i.id===id);
+const isHome = i => i.cat==="home";
+function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!==exceptMealId) for(const g of m.ing) if(g.itemId===id) s += +g.qty || 0; return s; }
+function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
+const spentShop = (a,b) => state.expenses.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
+const spentExtra = (a,b) => state.extras.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
+const inList = name => state.list.some(l => !l.checked && sameName(l.name, name));
+function addToList(name, cat, qty, unit){
+  if(inList(name)) return false;
+  state.list.push({id:uid(), name, qty:qty>0?qty:null, unit:qty>0?unit:null, checked:false, cat:cat||"food"});
+  return true;
+}
+
+// Budget settimanale effettivo, con l'eventuale riporto dalla settimana prima.
+function weekBudget(kind, ws){
+  const base = kind==="shop" ? state.weekly : state.extraWeekly;
+  const st = state.settings;
+  if(st.carry!=="next" || !st.carryFrom) return {base, carry:0, eff:base};
+  const start = sow(parseIso(st.carryFrom));
+  let eff = base, n = 0;
+  for(let w = start; w < ws && n < 520; w = addDays(w,7), n++){
+    const [a,b] = weekRange(w);
+    eff = base + (eff - (kind==="shop" ? spentShop(a,b) : spentExtra(a,b)));
+  }
+  return {base, carry:r2(eff-base), eff:r2(eff)};
+}
+function piggy(){
+  const st = state.settings;
+  if(st.carry!=="piggy" || !st.carryFrom) return null;
+  const start = sow(parseIso(st.carryFrom)), cur = sow(new Date());
+  let saved = 0, weeks = 0;
+  for(let w = start; w < cur && weeks < 520; w = addDays(w,7), weeks++){
+    const [a,b] = weekRange(w);
+    saved += (state.weekly - spentShop(a,b)) + (state.extraWeekly - spentExtra(a,b));
+  }
+  const out = state.piggyOut.reduce((s,x) => s+x.amount, 0);
+  return {total:r2(saved-out), weeks};
+}
+
+// Categoria casa per lista e dispensa.
+const HOME_WORDS = ["detersiv","sapone","shampoo","balsamo","bagnoschiuma","doccia schiuma","carta igienica","carta casa","scottex","fazzolett","tovaglioli","dentifricio","spazzolino","collutorio","deodorante","rasoi","lamette","assorbenti","cotton fioc","dischetti","spugn","sacchetti","sacchi","ammorbidente","candeggina","varechina","sgrassatore","anticalcare","lavastoviglie","pellicola","alluminio","carta forno","pile","lampadin","crema mani","crema viso","igienizzante","salviette","stracci","panni","mocio","profumatore","insetticida","detergente",
+ "detergent","soap","conditioner","shower gel","toilet paper","kitchen roll","paper towel","tissue","napkin","toothpaste","toothbrush","mouthwash","deodorant","razor","sponge","bin bag","bleach","cling film","foil","baking paper","batteries","bulb","wipes","fabric softener","dishwasher","cleaner"];
+const guessCat = n => { n = n.toLowerCase(); return HOME_WORDS.some(w => n.includes(w)) ? "home" : "food"; };
+
+// Categorie degli extra, riconosciute dalle parole.
+const XCATS = ["food","fun","transport","shopping","subs","health","other"];
+const XWORDS = {
+  subs:["netflix","spotify","disney","prime video","amazon prime","abbonamento","abbonamenti","dazn","now tv","sky","icloud","youtube premium","apple music","apple tv","chatgpt","claude","playstation plus","ps plus","game pass","subscription"],
+  health:["farmacia","farmaci","medicine","medicina","medico","dentista","visita","palestra","piscina","padel","calcetto","tennis","yoga","pilates","crossfit","barbiere","parrucchiere","pharmacy","doctor","dentist","gym","haircut","sport"],
+  transport:["benzina","carburante","diesel","gasolio","treno","trenitalia","italo","bus","autobus","metro","atac","tram","taxi","uber","freenow","parcheggio","autostrada","pedaggio","monopattino","sharing","aereo","volo","ryanair","easyjet","fuel","train","parking","flight","toll"],
+  shopping:["vestiti","maglia","maglietta","pantaloni","jeans","scarpe","giacca","felpa","amazon","zara","regalo","regali","profumo","cover","cuffie","elettronica","clothes","shoes","gift","present"],
+  fun:["cinema","film","concerto","teatro","museo","mostra","discoteca","serata","festa","evento","partita","stadio","bowling","escape","karaoke","libro","libri","fumetto","fumetti","manga","videogioco","gioco","steam","playstation","nintendo","xbox","movie","concert","theatre","theater","museum","party","book","game"],
+  food:["ristorante","cena","pranzo","pizza","gelat","bar","caffè","caffe","cappuccino","cornetto","colazione","aperitivo","aperitivi","spritz","birra","birre","vino","cocktail","sushi","kebab","panino","piadina","hamburger","burger","mcdonald","poke","ramen","trattoria","osteria","deliveroo","glovo","just eat","justeat","asporto","merenda","pasticceria","tramezzino","restaurant","dinner","lunch","coffee","breakfast","ice cream","beer","wine","drinks","takeaway"]
+};
+function guessXcat(note){
+  const n = note.toLowerCase(), tokens = n.split(/[^a-z0-9àèéìòóù]+/).filter(Boolean);
+  for(const cat of ["subs","health","transport","shopping","fun","food"])
+    for(const w of XWORDS[cat]){
+      if(w.includes(" ") ? n.includes(w) : tokens.some(t => t===w || (w.length>=5 && t.startsWith(w)))) return cat;
+    }
+  return "other";
+}
+const xcatOf = e => XCATS.includes(e.xcat) ? e.xcat : guessXcat(e.note||"");
+
+// Testo veloce: "pesce surgelato 300g", "uova x6".
+const UMAP = {g:"g",gr:"g",grammi:"g",kg:"kg",chili:"kg",ml:"ml",l:"l",lt:"l",litri:"l",litro:"l",pz:"pz",pezzi:"pz",pezzo:"pz",pcs:"pz",pc:"pz",oz:"oz",once:"oz",oncia:"oz",lb:"lb",lbs:"lb",libbre:"lb",libbra:"lb",floz:"fl oz"};
+function parseEntry(txt){
+  let t = txt.trim(), qty = null, unit = null;
+  let m = t.match(/(?:^|\s)(\d+(?:[.,]\d+)?)\s*(fl\s?oz|kg|grammi|gr|g|ml|litri|litro|lt|l|pezzi|pezzo|pz|pcs|pc|oz|once|oncia|lbs|lb|libbre|libbra)(?=\s|$)/i);
+  if(m){ qty = num(m[1]); unit = UMAP[m[2].toLowerCase().replace(/\s/g,"")]; t = t.slice(0,m.index)+" "+t.slice(m.index+m[0].length); }
+  else { m = t.match(/(?:^|\s)x\s*(\d+)(?=\s|$)|(?:^|\s)(\d+)\s*x(?=\s|$)/i); if(m){ qty = num(m[1]||m[2]); unit = "pz"; t = t.slice(0,m.index)+" "+t.slice(m.index+m[0].length); } }
+  return {name:cap(t.replace(/\s+/g," ").trim()), qty, unit};
+}
+// "gelato 3,5€" -> {amount:3.5, note:"Gelato"}
+function parseExtra(txt){
+  const s = txt.trim(), re = /(?:€\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:€|eur(?:o)?\b)?/gi;
+  let m, last = null;
+  while((m = re.exec(s))) last = {m:m[0], v:num(m[1]), i:m.index};
+  if(!last || !(last.v>0)) return null;
+  const note = (s.slice(0,last.i)+" "+s.slice(last.i+last.m.length)).replace(/\s+/g," ").trim();
+  return {amount:r2(last.v), note:cap(note) || T().extraDefault};
+}
+
+// Piatti preferiti.
+const findFav = name => name ? state.favs.find(f => sameName(f.name, name)) : null;
+function saveFav(name, ing){
+  const list = ing.map(g => { const it = itemById(g.itemId); return it ? {name:it.name, qty:Math.round(g.qty*10000)/10000, unit:it.unit} : null; }).filter(Boolean);
+  const f = findFav(name);
+  if(f){ f.name = name; f.ing = list; } else state.favs.push({id:uid(), name, ing:list});
+}
+// Abbina gli ingredienti di un preferito alla dispensa: righe pronte e cosa manca.
+function planFav(f){
+  const rows = [], missing = [];
+  for(const g of f.ing){
+    const cands = state.items.filter(i => !isHome(i) && sameName(i.name, g.name) && remaining(i)>0 && !rows.some(r => r.itemId===i.id));
+    const it = cands.find(i => DIM[i.unit]===DIM[g.unit]) || cands[0];
+    if(!it){ missing.push({name:g.name, qty:g.qty, unit:g.unit}); continue; }
+    const rem = remaining(it);
+    if(DIM[it.unit]!==DIM[g.unit]){ rows.push({itemId:it.id, qty:rem}); continue; }
+    const need = g.qty*F[g.unit]/F[it.unit];
+    if(need <= rem + 1e-9) rows.push({itemId:it.id, qty:need});
+    else { rows.push({itemId:it.id, qty:rem}); missing.push({name:g.name, have:rem, unit:it.unit, short:true}); }
+  }
+  return {rows, missing};
+}
+
+/* =========================================================
+   5. TEMA, AVVISI, ANNULLA
+   ========================================================= */
+let hostTheme;
+function applyTheme(){
+  const r = document.documentElement;
+  if(hostTheme===undefined) hostTheme = r.getAttribute("data-theme");
+  const th = state.settings.theme;
+  if(th==="system"){ if(hostTheme) r.setAttribute("data-theme", hostTheme); else r.removeAttribute("data-theme"); }
+  else r.setAttribute("data-theme", th);
+  r.lang = state.settings.lang;
+}
+let toastTimer;
+function toast(msg, opt = {}){
+  const root = $("#toastRoot");
+  root.innerHTML = `<div class="toast" role="status"><span>${esc(msg)}</span>${opt.undo ? `<button type="button" id="toastUndo">${T().undo}</button>` : ""}</div>`;
+  if(opt.undo) $("#toastUndo").onclick = () => { clearTimeout(toastTimer); root.innerHTML = ""; opt.undo(); };
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { root.innerHTML = ""; }, opt.undo ? 6000 : 2600);
+}
+// Esegue una modifica distruttiva e offre "Annulla" per qualche secondo.
+function withUndo(msg, mutate){
+  const snap = JSON.stringify(state);
+  mutate(); commit();
+  toast(msg, {undo(){ state = normalize(JSON.parse(snap)); applyTheme(); commit(); toast(T().tRestored); }});
+}
+
+/* =========================================================
+   6. ICONE
+   ========================================================= */
+const LOGO = `<svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="bite"><rect width="100" height="100" fill="#fff"/><circle cx="74" cy="27" r="12" fill="#000"/><circle cx="84.5" cy="42" r="11" fill="#000"/><circle cx="61" cy="17" r="11" fill="#000"/></mask></defs><rect width="100" height="100" rx="22" fill="#0f4c4a"/><g transform="translate(2.5 0)"><g mask="url(#bite)"><circle cx="48" cy="54" r="33" fill="#f2ae2e"/><circle cx="48" cy="54" r="25" fill="none" stroke="#c9850f" stroke-width="3"/></g><path d="M59 42.5a14 14 0 1 0 0 23" fill="none" stroke="#0f4c4a" stroke-width="6.5" stroke-linecap="round"/><path d="M31 50.5h20M31 58.5h20" stroke="#0f4c4a" stroke-width="5" stroke-linecap="round"/></g></svg>`;
+const ico = (path, w=2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
+const I = {
+  back: ico('<path d="M15 5l-7 7 7 7"/>', 2.2), fwd: ico('<path d="M9 5l7 7-7 7"/>', 2.2), chev: ico('<path d="M9 6l6 6-6 6"/>', 2),
+  plus: ico('<path d="M12 5v14M5 12h14"/>', 2.4), check: ico('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3), down: ico('<path d="M6 9l6 6 6-6"/>', 2.2),
+  sliders: ico('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/>', 1.9)
+};
+const TAB_ICONS = {
+  week:'<path d="M3.5 7a2.5 2.5 0 0 1 2.5-2.5h12A2.5 2.5 0 0 1 20.5 7v11a2.5 2.5 0 0 1-2.5 2.5H6A2.5 2.5 0 0 1 3.5 18z"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/>',
+  list:'<path d="M10 6.5h10M10 12h10M10 17.5h10"/><path d="M3.5 6.5l1.4 1.4 2.3-2.4M3.5 12l1.4 1.4 2.3-2.4M3.5 17.5l1.4 1.4 2.3-2.4"/>',
+  pantry:'<path d="M5 8.5h14l-1.1 11a1.5 1.5 0 0 1-1.5 1.4H7.6a1.5 1.5 0 0 1-1.5-1.4z"/><path d="M9 8.5V6.5a3 3 0 0 1 6 0v2"/>',
+  budget:'<path d="M3 5h2.5l2.2 10.2a1.5 1.5 0 0 0 1.5 1.3h7.9a1.5 1.5 0 0 0 1.4-1.1L20.5 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/>',
+  extra:'<circle cx="12" cy="12" r="8.5"/><path d="M14.8 8.6a4.2 4.2 0 1 0 0 6.8M7.8 11h5.4M7.8 13.4h5.4"/>',
+  stats:'<path d="M4 20.5h16"/><path d="M6.5 17v-5M11 17V7M15.5 17v-6.5M20 17V4.5" stroke-width="2.4"/>'
+};
+
+/* =========================================================
+   7. SCHERMATE
+   ========================================================= */
+const pagehead = (h, p) => `<div class="pagehead"><h1>${h}</h1>${p ? `<p>${p}</p>` : ""}</div>`;
+const catChip = c => c==="home" ? `<span class="chip home">${T().homeShort}</span>` : `<span class="chip">${T().foodShort}</span>`;
+const slotLabel = s => s==="pranzo" ? T().lunch : T().dinner;
+
+function hero({title, spent, budget, brand, kind="f", note=""}){
+  const t = T(), left = budget - spent, pct = budget>0 ? Math.min(100, spent/budget*100) : 100;
+  return `<section class="hero ${brand ? "brand" : ""}">
+    <div class="figs"><div><div class="label">${title}</div><div class="big num ${left<0 ? "over" : ""}">${eur(left)}</div></div>
+      <div class="side muted num">${t.spentOf(eur(spent), eur(budget))}</div></div>
+    <div class="sbar ${spent>budget ? "bad" : pct>=85 ? "warn" : ""}"><i class="${kind}" style="width:${pct}%"></i></div>
+    ${note ? `<div class="note muted">${note}</div>` : ""}</section>`;
+}
+function carryNote(c){ const t = T(); if(!c.carry) return ""; return c.carry>0 ? t.carryPlus(eur(c.carry)) : t.carryMinus(eur(-c.carry)); }
+
+/* ---- Settimana ---- */
+function viewWeek_(){
+  const t = T(), ws = viewWeek(), today = iso(new Date());
+  const tag = ui.weekOffset===0 ? t.thisWeek : ui.weekOffset===1 ? t.nextWeek : ui.weekOffset===-1 ? t.lastWeek : "";
+  let h = pagehead(t.tabWeek, t.weekSub);
+  h += `<div class="weeknav"><button class="iconbtn" data-act="weekPrev" aria-label="${t.prevWeekA}">${I.back}</button>
+    <div class="mid"><h2 class="num">${rangeLabel(ws)}</h2>${ui.weekOffset===0 ? `<span class="small muted">${tag}</span>` : `<button class="link" data-act="weekToday">${tag ? tag+" · " : ""}${t.backToday}</button>`}</div>
+    <button class="iconbtn" data-act="weekNext" aria-label="${t.nextWeekA}">${I.fwd}</button></div>`;
+  if(!state.items.some(i => !isHome(i)) && !state.meals.length){
+    h += `<div class="empty" style="margin-bottom:12px"><b>${t.emptyPantryT}</b><span class="muted small">${t.emptyPantryD}</span>
+      <div class="grid2"><button class="btn" data-act="tab" data-tab="pantry">${t.goPantry}</button><button class="btn ghost" data-act="sample">${t.tryExample}</button></div></div>`;
+  }
+  for(let i = 0; i < 7; i++){
+    const d = addDays(ws, i), di = iso(d);
+    h += `<div class="day ${di===today ? "today" : di<today ? "past" : ""}"><div class="dhead"><span class="dname">${t.days[d.getDay()]}</span><span class="muted small num">${d.getDate()} ${mon3(d)}</span>${di===today ? `<span class="chip">${t.today}</span>` : ""}</div>`;
+    for(const slot of ["pranzo","cena"]){
+      const sl = slotLabel(slot), ms = state.meals.filter(m => m.date===di && m.slot===slot);
+      h += `<div class="slot"><div class="label">${sl}</div><div class="meals">`;
+      if(!ms.length) h += `<div class="none">–</div>`;
+      for(const m of ms){
+        const ing = m.ing.map(g => { const it = itemById(g.itemId); return it ? esc(it.name)+" "+qs(+g.qty, it.unit) : t.removedIng; }).join(" · ");
+        const first = m.ing[0] && itemById(m.ing[0].itemId);
+        const title = m.name || (first ? first.name : t.meal);
+        h += `<div class="meal"><button class="mt-btn" data-act="editMeal" data-id="${m.id}"><b>${esc(title)}</b>${ing ? `<span>${ing}</span>` : ""}</button>
+          <button class="x" data-act="delMeal" data-id="${m.id}" aria-label="${t.removeMeal} ${esc(title)}">✕</button></div>`;
+      }
+      h += `</div><button class="add" data-act="addMeal" data-date="${di}" data-slot="${slot}" aria-label="${esc(t.addMealFor(sl, dayLong(d)))}">${I.plus}</button></div>`;
+    }
+    h += `</div>`;
+  }
+  return h;
+}
+
+/* ---- Lista ---- */
+function viewList(){
+  const t = T(), todo = state.list.filter(i => !i.checked), done = state.list.filter(i => i.checked);
+  const row = i => `<div class="li ${i.checked ? "on" : ""}">
+    <button class="ck" data-act="toggleCheck" data-id="${i.id}" aria-pressed="${!!i.checked}" aria-label="${i.checked ? t.uncheck : t.check} ${esc(i.name)}">${i.checked ? I.check : ""}</button>
+    <div class="nm">${esc(i.name)}${i.qty ? `<span class="num">${qs(i.qty, i.unit)}</span>` : ""}</div>
+    <button data-act="flipCat" data-id="${i.id}" aria-label="${t.changeCat} ${esc(i.name)}">${catChip(i.cat||"food")}</button>
+    <button class="x" data-act="delListItem" data-id="${i.id}" aria-label="${t.removeFromList} ${esc(i.name)}">✕</button></div>`;
+  let h = pagehead(t.listTitle, t.listSub) + `<form class="card form" id="listForm" autocomplete="off">
+    <div class="row"><input id="lName" placeholder="${t.phList}" aria-label="${t.listAdd}"><button class="btn" type="submit" style="flex:none">${t.add}</button></div>
+    <div class="seg"><button type="button" data-act="listCat" data-cat="auto" aria-pressed="${!ui.listCat}">${t.autoCat}</button><button type="button" data-act="listCat" data-cat="home" aria-pressed="${ui.listCat==="home"}">${t.home}</button></div>
+    <p class="hint">${t.listHint}</p></form>`;
+  if(!state.list.length) h += `<div class="empty mt"><span class="muted small">${t.emptyList}</span></div>`;
+  if(todo.length) h += `<div class="sechead"><h2>${t.toBuy} <span class="muted num">${todo.length}</span></h2></div>` + todo.map(row).join("");
+  if(done.length) h += `<div class="sechead"><h2>${t.inCart} <span class="muted num">${done.length}</span></h2></div>` + done.map(row).join("")
+    + `<div class="endbar"><button class="btn" data-act="endShop">${t.endShop(done.length)}</button></div>`;
+  return h;
+}
+
+/* ---- Dispensa ---- */
+function viewPantry(){
+  const t = T(), home = ui.pantryCat==="home";
+  let h = pagehead(t.tabPantry, t.pantrySub);
+  h += `<div class="seg" style="margin-bottom:12px"><button data-act="pantryCat" data-cat="food" aria-pressed="${!home}">${t.food}</button><button data-act="pantryCat" data-cat="home" aria-pressed="${home}">${t.home}</button></div>
+  <form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
+    <div class="label">${home ? t.addHomeProduct : t.addProduct}</div>
+    <input id="itName" placeholder="${home ? t.phHome : t.phFood}" aria-label="${t.name}">
+    <div class="grid2"><input id="itQty" inputmode="decimal" placeholder="${home ? t.qtyOpt : t.qty}" aria-label="${t.qty}">
+      <select id="itUnit" aria-label="${t.unit}">${unitList().map(u => `<option value="${u}" ${u===(home ? "pz" : unitList()[0]) ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></div>
+    <button class="btn" type="submit">${t.add}</button></form>`;
+  if(home){
+    const list = state.items.filter(isHome).sort((a,b) => b.added.localeCompare(a.added));
+    h += `<div class="sechead"><h2>${t.inHome} <span class="muted num">${list.length}</span></h2></div>`;
+    if(!list.length) h += `<div class="empty"><span class="muted small">${t.emptyHome}</span></div>`;
+    return h + `<div class="stack">${list.map(homeCard).join("")}</div>`;
+  }
+  const list = state.items.filter(i => !isHome(i)).sort((a,b) => (remaining(b)>0)-(remaining(a)>0) || b.added.localeCompare(a.added));
+  const avail = list.filter(i => remaining(i)>0), done = list.filter(i => remaining(i)<=0);
+  h += `<div class="sechead"><h2>${t.available} <span class="muted num">${avail.length}</span></h2></div>`;
+  if(!avail.length) h += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
+  h += `<div class="stack">${avail.map(foodCard).join("")}</div>`;
+  if(done.length){
+    h += `<div class="sechead"><h2>${t.finished} <span class="muted num">${done.length}</span></h2><button class="link" data-act="toggleDone">${ui.showDone ? t.hide : t.show}</button></div>`;
+    if(ui.showDone) h += `<div class="stack">${done.map(foodCard).join("")}</div>`;
+  }
+  return h;
+}
+function listBtn(it){
+  const t = T();
+  return inList(it.name) ? `<span class="chip neutral" style="align-self:center">${t.inListAlready}</span>` : `<button class="link small" data-act="itemToList" data-id="${it.id}">${t.backToList}</button>`;
+}
+function foodCard(it){
+  const t = T(), r = remaining(it), pct = it.qty ? Math.min(100, r/it.qty*100) : 0;
+  const uses = state.meals.filter(m => m.ing.some(g => g.itemId===it.id)).sort((a,b) => a.date.localeCompare(b.date) || a.slot.localeCompare(b.slot))
+    .map(m => { const q = m.ing.filter(g => g.itemId===it.id).reduce((s,g) => s + +g.qty, 0); return dayShort(parseIso(m.date))+" "+slotLabel(m.slot).toLowerCase()+" "+qs(q, it.unit); });
+  const [tq, tu] = toDisp(it.qty, it.unit);
+  return `<div class="item ${r<=0 ? "done" : ""}">
+    <div class="h"><b>${esc(it.name)}</b><span class="q num"><b>${qfmt(toDisp(r, it.unit)[0])}</b> <span class="muted">/ ${qfmt(tq)} ${ul(tu)}</span></span></div>
+    <div class="ibar"><i style="width:${pct}%"></i></div>
+    <div class="uses">${uses.length ? t.usedIn + uses.map(esc).join(" · ") : t.notUsed}</div>
+    <div class="actions">${r<=0 ? listBtn(it) : ""}<button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.del}</button></div></div>`;
+}
+function homeCard(it){
+  const t = T();
+  return `<div class="item"><div class="h"><b>${esc(it.name)}</b><span class="q num muted">${qs(it.qty, it.unit)}</span></div>
+    <div class="actions">${listBtn(it)}<button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.finishedBtn}</button></div></div>`;
+}
+
+/* ---- Spesa ---- */
+function viewShop(){
+  const t = T(), now = new Date(), ws = sow(now), [ma, mb, mName] = monthBounds();
+  const c = weekBudget("shop", ws), [a,b] = weekRange(ws);
+  let h = pagehead(t.tabShop, t.shopSub) + `<div class="stack">`
+    + hero({title:t.leftWeek, spent:spentShop(a,b), budget:c.eff, brand:true, note:carryNote(c)})
+    + hero({title:t.leftMonth(mName), spent:spentShop(ma,mb), budget:state.monthly}) + `</div>`;
+  h += `<form class="card form mt" id="expForm" data-enter="blur" autocomplete="off">
+    <div class="label">${t.logExpense}</div>
+    <div class="grid2"><label class="field"><span>${t.amount}</span><input id="exAmt" inputmode="decimal" placeholder="${t.phAmount}"></label>
+      <label class="field"><span>${t.date}</span><input id="exDate" type="date" value="${iso(now)}"></label></div>
+    <label class="field"><span>${t.note}</span><input id="exNote" placeholder="${t.phNote}"></label>
+    <button class="btn" type="submit">${t.subtract}</button></form>`;
+  const exps = state.expenses.filter(e => e.date>=ma && e.date<=mb).sort((x,y) => y.date.localeCompare(x.date));
+  h += `<div class="sechead"><h2>${t.expensesOf(mName)}</h2><button class="link small" data-act="tab" data-tab="stats">${t.seeStats}</button></div>`;
+  if(!exps.length) h += `<p class="muted small">${t.noExpenses}</p>`;
+  for(const e of exps) h += `<button class="rowbtn" data-act="editExpense" data-id="${e.id}"><div class="l"><b>${esc(e.note || t.shopEntry)}</b><span class="small muted">${dayLong(parseIso(e.date))}</span></div><span class="amt num">${eur(e.amount)}</span><span class="chev">${I.chev}</span></button>`;
+  h += `<p class="mt"><button class="link small" data-act="tab" data-tab="settings">${t.editBudgets}</button></p>`;
+  return h;
+}
+
+/* ---- Extra ---- */
+function viewExtra(){
+  const t = T(), now = new Date(), ws = sow(now), [ma, mb, mName] = monthBounds();
+  const c = weekBudget("extra", ws), [a,b] = weekRange(ws);
+  let h = pagehead(t.tabExtra, t.extraSub) + `<div class="stack">`
+    + hero({title:t.leftWeek, spent:spentExtra(a,b), budget:c.eff, brand:true, kind:"e", note:carryNote(c)})
+    + hero({title:t.leftMonth(mName), spent:spentExtra(ma,mb), budget:state.extraMonthly, kind:"e"}) + `</div>`;
+  h += `<form class="card form mt" id="extraForm" autocomplete="off">
+    <label class="field"><span>${t.extraWhat}</span><input id="xIn" placeholder="${t.phExtra}"></label>
+    <div class="grid2" style="align-items:end"><label class="field"><span>${t.date}</span><input id="xDate" type="date" value="${iso(now)}"></label>
+      <button class="btn" type="submit">${t.deduct}</button></div>
+    <p class="hint">${t.extraHint}</p></form>`;
+  const list = state.extras.filter(e => e.date>=ma && e.date<=mb).sort((x,y) => y.date.localeCompare(x.date));
+  h += `<div class="sechead"><h2>${t.extrasOf(mName)}</h2><button class="link small" data-act="tab" data-tab="stats">${t.seeStats}</button></div>`;
+  if(!list.length) h += `<p class="muted small">${t.noExtras}</p>`;
+  for(const e of list) h += `<button class="rowbtn" data-act="editExtra" data-id="${e.id}"><div class="l"><b>${esc(e.note)}</b><span class="small muted">${dayLong(parseIso(e.date))} · ${t.xcat[xcatOf(e)]}</span></div><span class="amt num">${eur(e.amount)}</span><span class="chev">${I.chev}</span></button>`;
+  h += `<p class="mt"><button class="link small" data-act="tab" data-tab="settings">${t.editBudgets}</button></p>`;
+  return h;
+}
+
+/* ---- Analisi ---- */
+function viewStats(){
+  const t = T(), now = new Date(), today = todayD(), week = ui.statsPeriod!=="month";
+  let a, b, days, elapsed, shopB, extraB, label;
+  if(week){
+    const ws = sow(now); [a,b] = weekRange(ws); days = 7; elapsed = Math.round((today-ws)/864e5)+1;
+    shopB = weekBudget("shop", ws).eff; extraB = weekBudget("extra", ws).eff; label = rangeLabel(ws);
+  } else {
+    let mName; [a,b,mName] = monthBounds(); days = parseIso(b).getDate(); elapsed = now.getDate();
+    shopB = state.monthly; extraB = state.extraMonthly; label = mName;
+  }
+  const shop = spentShop(a,b), extra = spentExtra(a,b), tot = shop+extra, totB = shopB+extraB, left = totB-tot;
+  const scale = Math.max(totB, tot) || 1, rem = days-elapsed, proj = x => x/elapsed*days;
+  const pill = (s, bud) => s>bud ? `<span class="pill no">${t.over}</span>` : proj(s)>bud*1.02 ? `<span class="pill mid">${t.atRisk}</span>` : `<span class="pill ok">${t.onTrack}</span>`;
+  const pct = (s, bud) => bud>0 ? Math.min(100, s/bud*100) : 100;
+
+  let h = pagehead(t.tabStats, t.statsSub);
+  h += `<div class="seg" style="margin-bottom:12px"><button data-act="statsPeriod" data-p="week" aria-pressed="${week}">${t.pWeek}</button><button data-act="statsPeriod" data-p="month" aria-pressed="${!week}">${t.pMonth}</button></div>`;
+  h += `<section class="hero brand"><div class="figs"><div><div class="label">${t.totalOut} · ${label}</div><div class="big num">${eur(tot)}</div></div>
+      <div class="side muted num">${t.totalBudget(eur(totB))}<br><b class="${left<0 ? "over" : ""}" style="color:var(--on-brand)">${left<0 ? t.overTot(eur(-left)) : t.leftTot(eur(left))}</b></div></div>
+    <div class="sbar"><i class="f" style="width:${shop/scale*100}%"></i><i class="e" style="width:${extra/scale*100}%"></i></div>
+    <div class="legend num"><span><i class="dot f"></i>${t.shopL} <b>${eur(shop)}</b> / ${eur(shopB)}</span><span><i class="dot e"></i>${t.extraL} <b>${eur(extra)}</b> / ${eur(extraB)}</span></div></section>`;
+
+  // Ritmo
+  h += `<div class="sechead"><h2>${t.pace}</h2></div><div class="tiles num">
+    <div class="tile"><span class="s">${t.perDay}</span><span class="v">${eur(tot/elapsed)}</span></div>
+    <div class="tile"><span class="s">${t.projection}</span><span class="v ${proj(tot)>totB ? "badc" : "good"}">${eur(proj(tot))}</span></div>
+    <div class="tile"><span class="s">${t.daysLeft}</span><span class="v">${rem}</span></div>
+    <div class="tile"><span class="s">${t.canSpend}</span><span class="v ${left<0 ? "badc" : ""}">${rem>0 ? eur(Math.max(0,left)/rem) : "–"}</span></div></div>
+  <div class="card pace num mt">
+    <div class="r"><div class="top"><b>${t.shopL}</b>${pill(shop, shopB)}</div><div class="sbar ${shop>shopB ? "bad" : ""}"><i class="f" style="width:${pct(shop,shopB)}%"></i></div><span class="small muted">${t.projOf(eur(proj(shop)), eur(shopB))}</span></div>
+    <div class="r"><div class="top"><b>${t.extraL}</b>${pill(extra, extraB)}</div><div class="sbar ${extra>extraB ? "bad" : ""}"><i class="e" style="width:${pct(extra,extraB)}%"></i></div><span class="small muted">${t.projOf(eur(proj(extra)), eur(extraB))}</span></div></div>`;
+
+  // Avanzo: salvadanaio o riporto
+  const pg = piggy(), st = state.settings;
+  if(pg){
+    const g = state.goal, gp = g && g.amount>0 ? Math.max(0, Math.min(100, Math.round(pg.total/g.amount*100))) : null;
+    const outs = state.piggyOut.slice().sort((x,y) => y.date.localeCompare(x.date)).slice(0,5);
+    h += `<div class="sechead"><h2>${t.piggyT}</h2></div><div class="card piggy" style="display:grid;gap:12px">
+      <div class="big num ${pg.total<0 ? "badc" : ""}">${eur(pg.total)}</div><p class="small muted">${t.piggyWeeks(pg.weeks)}</p>
+      ${gp!=null ? `<div class="sbar"><i class="e" style="width:${gp}%"></i></div><p class="small">${esc(t.goalProgress(gp, g.name, eur(g.amount)))}</p>` : ""}
+      <button class="btn ghost" data-act="piggyOut">${t.useFromPiggy}</button>
+      ${outs.length ? `<div><div class="label" style="margin-bottom:4px">${t.withdrawals}</div>${outs.map(o => `<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:4px 0"><span class="small" style="flex:1">${esc(o.note || t.piggyOutDefault)} <span class="muted">· ${dayShort(parseIso(o.date))}</span></span><b class="num small">${eur(o.amount)}</b><button class="x" data-act="delPiggyOut" data-id="${o.id}" aria-label="${t.del}">✕</button></div>`).join("")}</div>` : ""}</div>`;
+  } else if(st.carry==="next"){
+    const cs = weekBudget("shop", sow(now)).carry, ce = weekBudget("extra", sow(now)).carry, sg = x => (x>0 ? "+" : "") + eur(x);
+    h += `<div class="sechead"><h2>${t.carryT}</h2></div><div class="card"><p class="small">${t.carryNow(sg(cs), sg(ce))}</p></div>`;
+  } else {
+    h += `<div class="sechead"><h2>${t.carryOffT}</h2></div><div class="card" style="display:grid;gap:10px"><p class="small muted">${t.carryOffD}</p><button class="link" style="justify-self:start" data-act="tab" data-tab="settings">${t.goSettings}</button></div>`;
+  }
+
+  // Dal primo dato registrato in poi, per non contare periodi in cui l'app non c'era
+  const firstDate = [...state.expenses, ...state.extras].reduce((m,e) => e.date<m ? e.date : m, iso(now));
+  // Ultime 8 settimane
+  const cws = sow(now), wk = [];
+  for(let k = 7; k >= 0; k--){ const ws = addDays(cws, -7*k), [x,y] = weekRange(ws); wk.push({ws, s:spentShop(x,y), e:spentExtra(x,y), cur:k===0}); }
+  const wB = state.weekly + state.extraWeekly, wMax = Math.max(wB, ...wk.map(w => w.s+w.e))*1.08 || 1;
+  const past = wk.filter(w => !w.cur && iso(addDays(w.ws,6))>=firstDate), okW = past.filter(w => w.s+w.e <= wB).length;
+  h += `<div class="sechead"><h2>${t.last8}</h2></div><div class="card num">
+    <div class="chart" role="img" aria-label="${t.last8}">${wk.map(w => `<div class="col ${w.cur ? "cur" : ""}" title="${rangeLabel(w.ws)} · ${eur(w.s+w.e)}"><i class="f" style="height:${w.s/wMax*100}%"></i><i class="e" style="height:${w.e/wMax*100}%"></i></div>`).join("")}
+      <div class="bl" style="bottom:${wB/wMax*100}%"><span>${t.budgetLine} ${eur(wB)}</span></div></div>
+    <div class="xl">${wk.map(w => `<span>${w.ws.getDate()}/${w.ws.getMonth()+1}</span>`).join("")}</div>
+    <div class="legend muted" style="margin-top:10px"><span><i class="dot f"></i>${t.shopL}</span><span><i class="dot e"></i>${t.extraL}</span></div>
+    <p class="small muted" style="margin-top:8px">${past.length ? t.inBudget(okW, past.length)+" " : ""}${t.curWeekNote}${st.carry==="next" ? " "+t.baseBudgetNote : ""}</p></div>`;
+
+  // Ultimi 6 mesi
+  const rows = [];
+  for(let k = 5; k >= 0; k--){
+    const d = new Date(now.getFullYear(), now.getMonth()-k, 1), [x,y] = monthBounds(d);
+    if(y < firstDate) continue;
+    const s = spentShop(x,y), e = spentExtra(x,y), diff = state.monthly + state.extraMonthly - s - e;
+    rows.push(`<tr><td>${mon3(d)} ${String(d.getFullYear()).slice(2)}</td><td>${eur(s)}</td><td>${eur(e)}</td><td class="${diff<0 ? "badc" : "good"}"><b>${diff>=0 ? "+" : ""}${eur(diff)}</b></td></tr>`);
+  }
+  h += `<div class="sechead"><h2>${t.last6}</h2></div><div class="card tablewrap"><table class="mtab num"><thead><tr><th>${t.colMonth}</th><th>${t.colShop}</th><th>${t.colExtra}</th><th>${t.colDiff}</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+
+  // Extra per categoria e voci principali
+  const ex = state.extras.filter(e => e.date>=a && e.date<=b), byCat = {}, byNote = {};
+  for(const e of ex){
+    const c = xcatOf(e); byCat[c] = (byCat[c]||0) + e.amount;
+    const k = e.note.trim().toLowerCase(); byNote[k] = byNote[k] || {n:e.note, v:0, c:0}; byNote[k].v += e.amount; byNote[k].c++;
+  }
+  const cats = Object.entries(byCat).sort((x,y) => y[1]-x[1]), cMax = cats.length ? cats[0][1] : 1;
+  const top = Object.values(byNote).sort((x,y) => y.v-x.v).slice(0,5), tMax = top.length ? top[0].v : 1;
+  h += `<div class="sechead"><h2>${t.extraByCat}</h2></div><div class="card">${cats.length
+    ? `<div class="hbar num">${cats.map(([c,v]) => `<span>${t.xcat[c]} <span class="muted small">${Math.round(v/extra*100)}%</span></span><b>${eur(v)}</b><div class="b"><i style="width:${v/cMax*100}%"></i></div>`).join("")}</div>`
+    : `<p class="small muted">${t.noExtraP}</p>`}</div>`;
+  if(top.length) h += `<div class="sechead"><h2>${t.topExtra}</h2></div><div class="card"><div class="hbar num">${top.map(g => `<span>${esc(g.n)}${g.c>1 ? ` <span class="muted small">×${g.c}</span>` : ""}</span><b>${eur(g.v)}</b><div class="b"><i style="width:${g.v/tMax*100}%"></i></div>`).join("")}</div></div>`;
+
+  // Spese al supermercato
+  const sx = state.expenses.filter(e => e.date>=a && e.date<=b);
+  h += `<div class="sechead"><h2>${t.shopStats}</h2></div><div class="tiles num">
+    <div class="tile"><span class="s">${t.trips}</span><span class="v">${sx.length}</span></div>
+    <div class="tile"><span class="s">${t.avgTrip}</span><span class="v">${sx.length ? eur(shop/sx.length) : "–"}</span></div>
+    <div class="tile wide"><span class="s">${t.maxTrip}</span><span class="v">${sx.length ? eur(Math.max(...sx.map(e => e.amount))) : "–"}</span></div></div>`;
+
+  // Cucina e dispensa
+  const [wa, wb] = weekRange(sow(now));
+  const slots = new Set(state.meals.filter(m => m.date>=wa && m.date<=wb).map(m => m.date+m.slot)).size;
+  const added = state.items.filter(i => { const d = (i.added||"").slice(0,10); return d>=a && d<=b; });
+  h += `<div class="sechead"><h2>${t.kitchen}</h2></div><div class="tiles num">
+    <div class="tile"><span class="s">${t.mealsPlanned}</span><span class="v">${slots} <span class="s">${t.ofN(14)}</span></span></div>
+    <div class="tile"><span class="s">${t.inPantryNow}</span><span class="v">${state.items.filter(i => !isHome(i) && remaining(i)>0).length}</span></div>
+    <div class="tile"><span class="s">${t.boughtFood}</span><span class="v">${added.filter(i => !isHome(i)).length}</span></div>
+    <div class="tile"><span class="s">${t.boughtHome}</span><span class="v">${added.filter(isHome).length}</span></div>
+    <div class="tile wide"><span class="s">${t.favCount}</span><span class="v">${state.favs.length}</span></div></div>`;
+  return h;
+}
+
+/* ---- Opzioni ---- */
+function viewSettings(){
+  const t = T(), s = state.settings;
+  const seg = (key, opts) => `<div class="seg">${opts.map(([v,l]) => `<button type="button" data-act="setOpt" data-key="${key}" data-val="${v}" aria-pressed="${String(s[key])===String(v)}">${l}</button>`).join("")}</div>`;
+  const g = state.goal || {};
+  let h = `<div class="card" style="margin-top:6px">
+    <div class="opt"><div class="t">${t.sAppearance}</div><p class="hint">${t.sAppearanceD}</p>${seg("theme", [["system",t.themeSystem],["light",t.themeLight],["dark",t.themeDark]])}</div>
+    <div class="opt"><div class="t">${t.sLang}</div>${seg("lang", [["it","Italiano"],["en","English"]])}</div>
+    <div class="opt"><div class="t">${t.sUnits}</div><p class="hint">${t.sUnitsD}</p>${seg("units", [["metric",t.metric],["imperial",t.imperial]])}</div>
+    <div class="opt"><div class="t">${t.sWeek}</div>${seg("weekStart", [[1,t.monday],[0,t.sunday]])}</div></div>`;
+  h += `<form class="card form mt" id="budgetForm" data-enter="blur" autocomplete="off">
+    <div class="t" style="font-weight:700">${t.sBudgets}</div>
+    <div class="label">${t.sShopBudget}</div>
+    <div class="grid2"><label class="field"><span>${t.weekly}</span><input id="bW" inputmode="decimal" value="${moneyIn(state.weekly)}"></label><label class="field"><span>${t.monthly}</span><input id="bM" inputmode="decimal" value="${moneyIn(state.monthly)}"></label></div>
+    <div class="label">${t.sExtraBudget}</div>
+    <div class="grid2"><label class="field"><span>${t.weekly}</span><input id="xW" inputmode="decimal" value="${moneyIn(state.extraWeekly)}"></label><label class="field"><span>${t.monthly}</span><input id="xM" inputmode="decimal" value="${moneyIn(state.extraMonthly)}"></label></div>
+    <button class="btn" type="submit">${t.saveBudgets}</button></form>`;
+  h += `<div class="card mt" style="display:grid;gap:10px"><div class="t" style="font-weight:700">${t.sCarry}</div><p class="hint">${t.sCarryD}</p>
+    ${seg("carry", [["off",t.carryOff],["next",t.carryNext],["piggy",t.carryPiggy]])}
+    ${s.carry==="next" ? `<p class="hint">${t.carryNextHint}</p>` : ""}
+    ${s.carry==="piggy" ? `<p class="hint">${t.carryPiggyHint}</p>
+      <form class="form" id="goalForm" data-enter="blur" autocomplete="off"><div class="grid2"><label class="field"><span>${t.goalName}</span><input id="gName" placeholder="${t.phGoal}" value="${esc(g.name||"")}"></label>
+      <label class="field"><span>${t.goalAmount}</span><input id="gAmt" inputmode="decimal" placeholder="${t.phGoalAmt}" value="${g.amount ? moneyIn(g.amount) : ""}"></label></div>
+      <button class="btn ghost" type="submit">${t.saveGoal}</button></form>` : ""}</div>`;
+  h += `<div class="card mt"><div class="t" style="font-weight:700">${t.sFavs}</div><p class="hint" style="margin:4px 0 6px">${t.sFavsD}</p>
+    ${state.favs.length ? state.favs.map(f => `<div class="favrow"><div class="nm"><b>${esc(f.name)}</b><span>${f.ing.map(g => esc(g.name)+" "+qs(g.qty, g.unit)).join(" · ")}</span></div><button class="x" data-act="delFav" data-id="${f.id}" aria-label="${t.removeFav} ${esc(f.name)}">✕</button></div>`).join("") : `<p class="small muted">${t.noFavs}</p>`}</div>`;
+  h += `<div class="card mt" style="display:grid;gap:10px">
+    <div class="row" style="justify-content:space-between"><span style="font-weight:700">${t.sData}</span><span class="small muted" id="sync">${t.sync[syncKey]}</span></div>
+    <p class="hint">${t.bkHint}</p>
+    <button class="btn ghost" data-act="backupCopy">${t.bkCopy}</button>
+    <textarea id="bkOut" readonly hidden rows="4" style="font:12px ui-monospace,monospace"></textarea>
+    ${ui.restore ? `<textarea id="bkIn" rows="5" placeholder="${t.bkPaste}"></textarea><div class="grid2"><button class="btn ghost" data-act="restoreCancel">${t.cancel}</button><button class="btn" data-act="restoreImport">${t.bkImport}</button></div>`
+      : `<button class="btn ghost" data-act="restoreOpen">${t.bkRestore}</button>`}
+    <button class="btn ghost" data-act="sample">${t.loadExample}</button>
+    ${ui.confirmClear ? `<p class="small">${t.clearQ}</p><div class="grid2"><button class="btn ghost" data-act="clearCancel">${t.no}</button><button class="btn danger" data-act="clearAll">${t.yesClear}</button></div>`
+      : `<button class="btn danger" data-act="clearAsk">${t.clearAll}</button>`}</div>
+  <p class="small muted" style="text-align:center;margin-top:20px">BudgetBite</p>`;
+  return h;
+}
+
+/* ---- Guscio: barra in alto, contenuto, tab ---- */
+const TABS = [["week","tabWeek"],["list","tabList"],["pantry","tabPantry"],["budget","tabShop"],["extra","tabExtra"],["stats","tabStats"]];
+const VIEWS = {week:viewWeek_, list:viewList, pantry:viewPantry, budget:viewShop, extra:viewExtra, stats:viewStats, settings:viewSettings};
+function render(){
+  const t = T(), inSettings = ui.tab==="settings";
+  $("#bar").innerHTML = inSettings
+    ? `<header class="appbar"><div class="in"><button class="backbtn" data-act="back">${I.back}${t.back}</button><div class="apptitle">${t.settings}</div><span class="spacer"></span></div></header>`
+    : `<header class="appbar"><div class="in">${LOGO}<div class="brandname">Budget<em>Bite</em></div><button class="iconbtn" data-act="tab" data-tab="settings" aria-label="${t.settings}">${I.sliders}</button></div></header>`;
+  $("#tabs").setAttribute("aria-label", "BudgetBite");
+  $("#tabs").innerHTML = `<div class="in" role="tablist">${TABS.map(([k,l]) => `<button role="tab" data-act="tab" data-tab="${k}" aria-selected="${ui.tab===k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TAB_ICONS[k]}</svg>${t[l]}</button>`).join("")}</div>`;
+  const y = window.scrollY;
+  $("#app").innerHTML = (VIEWS[ui.tab] || viewWeek_)();
+  window.scrollTo(0, y);
+  bindForms();
+  $$("input:not([type=date]):not([type=checkbox])").forEach(i => i.setAttribute("enterkeyhint", i.form && i.form.dataset.enter==="blur" ? "done" : "enter"));
+}
+function go(tab){
+  if(tab==="settings" && ui.tab!=="settings") ui.prevTab = ui.tab;
+  ui.tab = tab; ui.restore = false; ui.confirmClear = false;
+  closeSheet(); render(); window.scrollTo(0,0);
+  if(tab!=="settings") try{ localStorage.setItem(LS_KEY+"-tab", tab); }catch(e){}
+}
+
+/* =========================================================
+   8. MODULI DELLE SCHERMATE
+   ========================================================= */
+function blurActive(){ const a = document.activeElement; if(a && a.blur) a.blur(); }
+function bindForms(){
+  const t = T(), on = (id, fn) => { const f = $(id); if(f) f.onsubmit = e => { e.preventDefault(); fn(f); }; };
+  on("#listForm", () => {
+    const p = parseEntry($("#lName").value); if(!p.name){ toast(t.tWriteName); return; }
+    state.list.push({id:uid(), name:p.name, qty:p.qty, unit:p.unit, checked:false, cat:ui.listCat || guessCat(p.name)}); commit();
+    setTimeout(() => { const i = $("#lName"); if(i) i.focus(); }, 0);
+  });
+  on("#itemForm", () => {
+    const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value, home = ui.pantryCat==="home";
+    if(!name || (!home && !(q>0))){ toast(t.tNameQty); return; }
+    state.items.push({id:uid(), name, qty:q>0 ? q : null, unit, cat:home ? "home" : "food", added:new Date().toISOString()});
+    blurActive(); commit(); toast(t.tAdded(name));
+  });
+  on("#expForm", () => {
+    const a = num($("#exAmt").value); if(!(a>0)){ toast(t.tAmount); return; }
+    state.expenses.push({id:uid(), amount:r2(a), date:$("#exDate").value || iso(new Date()), note:$("#exNote").value.trim()});
+    blurActive(); commit(); toast(t.tSubtracted(eur(a)));
+  });
+  on("#extraForm", () => {
+    const r = parseExtra($("#xIn").value); if(!r){ toast(t.tExtraNeedAmt); return; }
+    state.extras.push({id:uid(), amount:r.amount, note:r.note, date:$("#xDate").value || iso(new Date()), xcat:guessXcat(r.note)});
+    commit(); toast(t.tExtraDone(r.note, eur(r.amount)));
+    setTimeout(() => { const i = $("#xIn"); if(i) i.focus(); }, 0);
+  });
+  on("#budgetForm", () => {
+    const v = ["#bW","#bM","#xW","#xM"].map(s => num($(s).value)); if(v.some(x => !(x>0))){ toast(t.tBudget); return; }
+    [state.weekly, state.monthly, state.extraWeekly, state.extraMonthly] = v.map(r2); blurActive(); commit(); toast(t.tBudgetSaved);
+  });
+  on("#goalForm", () => {
+    const amt = num($("#gAmt").value), name = $("#gName").value.trim();
+    state.goal = amt>0 ? {name, amount:r2(amt)} : (name ? {name, amount:0} : null); blurActive(); commit(); toast(t.tGoalSaved);
+  });
+}
+
+/* =========================================================
+   9. FOGLI (pasto, prodotto, spesa, extra, fine spesa, salvadanaio)
+   ========================================================= */
+function closeSheet(){ $("#sheetRoot").innerHTML = ""; }
+function sheet(inner, {form=false, blurEnter=false} = {}){
+  const tag = form ? "form" : "div";
+  $("#sheetRoot").innerHTML = `<div class="scrim" data-act="closeSheet"><${tag} class="sheet" id="sheetEl" ${blurEnter ? 'data-enter="blur"' : ""} role="dialog" aria-modal="true" autocomplete="off"><div class="grab"></div>${inner}</${tag}></div>`;
+  const el = $("#sheetEl");
+  $$("input:not([type=date]):not([type=checkbox])", el).forEach(i => i.setAttribute("enterkeyhint", blurEnter ? "done" : "enter"));
+  return el;
+}
+const sheetButtons = okLabel => `<div class="grid2"><button type="button" class="btn ghost" data-act="closeSheet">${T().cancel}</button><button class="btn" type="submit">${okLabel}</button></div>`;
+
+/* ---- Pasto: aggiunta e modifica ---- */
+function openMeal(date, slot, mealId){
+  const t = T(), meal = mealId ? state.meals.find(m => m.id===mealId) : null;
+  if(mealId && !meal) return;
+  if(meal){ date = meal.date; slot = meal.slot; }
+  const own = id => meal ? meal.ing.filter(g => g.itemId===id).reduce((s,g) => s + +g.qty, 0) : 0;
+  const avail = it => remaining(it, meal && meal.id);
+  const pool = state.items.filter(i => !isHome(i) && (avail(i)>0 || own(i.id)>0));
+  const fav = meal && findFav(meal.name);
+  const favChips = !meal && state.favs.length ? `<div class="field"><span>${t.favorites}</span><div class="favs">${state.favs.map(f => `<button type="button" class="favchip" data-fav="${f.id}" aria-pressed="false">★ ${esc(f.name)}</button>`).join("")}</div></div>` : "";
+  const el = sheet(`<div class="head"><div class="label">${slotLabel(slot)} · ${dayLong(parseIso(date))}</div><h2>${meal ? t.mealEditT : t.mealAddT}</h2></div>
+    ${favChips}
+    <label class="field"><span>${t.mealName}</span><input id="mName" placeholder="${t.phMeal}" value="${meal ? esc(meal.name) : ""}"></label>
+    <div class="label">${t.ingFromPantry}</div>
+    <div class="stack" id="ingRows"></div>
+    <p class="hint" id="ingEmpty" hidden></p>
+    <button type="button" class="link" id="addRow" style="justify-self:start">${t.anotherIng}</button>
+    <div id="missBox"></div>
+    <label class="checkrow"><input type="checkbox" id="mFav"><span>${fav ? t.updateFav : t.saveFav}</span></label>
+    <p class="hint">${t.mealHint}</p>
+    ${meal ? `<button type="button" class="btn danger" id="mDel">${t.deleteMeal}</button>` : ""}
+    ${sheetButtons(meal ? t.save : t.add)}`, {form:true, blurEnter:true});
+  const rows = $("#ingRows", el);
+  const options = sel => pool.map(i => `<option value="${i.id}" ${i.id===sel ? "selected" : ""}>${esc(i.name)}</option>`).join("");
+  function refresh(){
+    const empty = $("#ingEmpty", el);
+    empty.hidden = rows.children.length>0;
+    empty.textContent = pool.length ? t.noIngYet : t.pantryEmptyHint;
+    $("#addRow", el).hidden = !pool.length;
+  }
+  function addRow(itemId, qtyItemUnit){
+    if(!pool.length) return;
+    const k = uid(), div = document.createElement("div");
+    div.className = "ingr";
+    div.innerHTML = `<label class="field"><span>${t.ingredient}</span><select id="i-${k}">${options(itemId)}</select></label>
+      <label class="field"><span id="u-${k}"></span><input id="q-${k}" inputmode="decimal" enterkeyhint="done"></label>
+      <button type="button" class="x" aria-label="${t.removeIng}">✕</button><span class="hint ingleft" id="r-${k}"></span>`;
+    rows.appendChild(div);
+    const sel = div.querySelector("select"), q = div.querySelector("input"), lab = div.querySelector(`#u-${k}`), leftEl = div.querySelector(`#r-${k}`);
+    if(!itemId){
+      const taken = $$("select", rows).filter(s => s!==sel).map(s => s.value);
+      const free = pool.find(i => !taken.includes(i.id) && avail(i)>0); if(free) sel.value = free.id;
+    }
+    const setQty = qi => { const it = itemById(sel.value); lab.textContent = t.qtyIn(ul(dispUnit(it.unit))); leftEl.textContent = t.inPantryLeft(qs(avail(it), it.unit), qn(avail(it), it.unit)); q.value = qfmt(toDisp(qi!=null ? qi : avail(it), it.unit)[0]); };
+    setQty(qtyItemUnit);
+    sel.onchange = () => setQty(null);
+    div.querySelector("button").onclick = () => { div.remove(); refresh(); };
+    refresh();
+  }
+  function showMissing(missing){
+    const box = $("#missBox", el);
+    if(!missing.length){ box.innerHTML = ""; return; }
+    box.innerHTML = `<div class="warnbox"><b>${t.missingT}</b><ul>${missing.map(m => `<li>${esc(m.short ? t.missShort(m.name, qs(m.have, m.unit), qn(m.have, m.unit)) : t.missNone(m.name))}</li>`).join("")}</ul>
+      <button type="button" class="btn sm ghost" id="missToList" style="justify-self:start">${t.toList}</button></div>`;
+    $("#missToList", el).onclick = () => {
+      let n = 0; for(const m of missing) if(addToList(m.name, "food", m.short ? null : m.qty, m.short ? null : m.unit)) n++;
+      commit(); toast(n ? t.tAddedToList(n) : t.tAllInList); showMissing([]);
+    };
+  }
+  if(meal){ for(const g of meal.ing) if(pool.some(i => i.id===g.itemId)) addRow(g.itemId, +g.qty); }
+  else addRow();
+  refresh();
+  $("#addRow", el).onclick = () => addRow();
+  $$("[data-fav]", el).forEach(b => b.onclick = () => {
+    const f = state.favs.find(x => x.id===b.dataset.fav); if(!f) return;
+    $("#mName", el).value = f.name; rows.innerHTML = "";
+    const plan = planFav(f); plan.rows.forEach(r => addRow(r.itemId, r.qty)); refresh(); showMissing(plan.missing);
+    $$("[data-fav]", el).forEach(x => x.setAttribute("aria-pressed", String(x===b)));
+    $("#mFav", el).nextElementSibling.textContent = t.updateFav;
+  });
+  if(meal) $("#mDel", el).onclick = () => { closeSheet(); withUndo(t.tMealRemoved, () => { state.meals = state.meals.filter(m => m.id!==meal.id); }); };
+  el.onsubmit = e => {
+    e.preventDefault();
+    const name = $("#mName", el).value.trim(), wantFav = $("#mFav", el).checked, ing = [], tot = {};
+    for(const div of rows.children){
+      const it = itemById(div.querySelector("select").value), qd = num(div.querySelector("input").value);
+      if(!(qd>0)){ toast(t.tEachQty); return; }
+      const q = fromDisp(qd, dispUnit(it.unit), it.unit);
+      tot[it.id] = (tot[it.id]||0) + q; ing.push({itemId:it.id, qty:q});
+    }
+    if(!name && !ing.length){ toast(t.mealNeedsSomething); return; }
+    if(wantFav && !name){ toast(t.favNeedsName); return; }
+    for(const id in tot){ const it = itemById(id), av = avail(it); if(tot[id] > av + Math.max(1e-6, av*0.002)){ toast(t.onlyLeft(it.name, qs(av, it.unit), qn(av, it.unit))); return; } }
+    for(const g of ing){ const av = avail(itemById(g.itemId)); if(tot[g.itemId] > av) g.qty *= av/tot[g.itemId]; g.qty = Math.round(g.qty*10000)/10000; }
+    if(meal){ meal.name = name; meal.ing = ing; } else state.meals.push({id:uid(), date, slot, name, ing});
+    if(wantFav) saveFav(name, ing);
+    blurActive(); closeSheet(); commit();
+    toast((meal ? t.tMealSaved : t.tMealAdded) + (wantFav ? " · "+t.tFavShort : ""));
+  };
+}
+
+/* ---- Prodotto ---- */
+function openItem(id){
+  const t = T(), it = itemById(id); if(!it) return;
+  const u = used(id), [dq, du] = it.qty!=null ? toDisp(it.qty, it.unit) : [null, dispUnit(it.unit)];
+  const opts = unitList().includes(du) ? unitList() : [du, ...unitList()];
+  const el = sheet(`<h2>${t.editProduct}</h2>
+    <label class="field"><span>${t.name}</span><input id="eName" value="${esc(it.name)}"></label>
+    <div class="grid2"><label class="field"><span>${isHome(it) ? t.qtyOpt : t.qty}</span><input id="eQty" inputmode="decimal" value="${dq!=null ? qfmt(dq) : ""}"></label>
+      <label class="field"><span>${t.unit}</span><select id="eUnit">${opts.map(x => `<option value="${x}" ${x===du ? "selected" : ""}>${ul(x)}</option>`).join("")}</select></label></div>
+    ${u ? `<p class="hint">${t.alreadyUsed(qs(u, it.unit))}</p>` : ""}
+    ${sheetButtons(t.save)}`, {form:true, blurEnter:true});
+  el.onsubmit = e => {
+    e.preventDefault();
+    const name = cap($("#eName", el).value.trim()), q = num($("#eQty", el).value), nu = $("#eUnit", el).value;
+    if(!name || (!isHome(it) && !(q>0))){ toast(t.tNameQty); return; }
+    const unchanged = nu===du && dq!=null && Math.abs(q - Math.round(dq*100)/100) < 0.005;
+    if(!unchanged){
+      if(u>0 && DIM[nu]!==DIM[it.unit]){ toast(t.cantChangeKind); return; }
+      if(q>0 && q < u*F[it.unit]/F[nu] - 1e-6){ toast(t.qtyTooLow(qs(u, it.unit))); return; }
+      if(u>0 && nu!==it.unit){ const k = F[it.unit]/F[nu]; state.meals.forEach(m => m.ing.forEach(g => { if(g.itemId===id) g.qty = Math.round(g.qty*k*10000)/10000; })); }
+      it.qty = q>0 ? q : null; it.unit = nu;
+    }
+    it.name = name; blurActive(); closeSheet(); commit(); toast(t.tSaved);
+  };
+}
+
+/* ---- Spesa registrata ---- */
+function openExpense(id){
+  const t = T(), x = state.expenses.find(e => e.id===id); if(!x) return;
+  const el = sheet(`<h2>${t.editExpenseT}</h2>
+    <div class="grid2"><label class="field"><span>${t.amount}</span><input id="eAmt" inputmode="decimal" value="${moneyIn(x.amount)}"></label>
+      <label class="field"><span>${t.date}</span><input id="eDate" type="date" value="${x.date}"></label></div>
+    <label class="field"><span>${t.note}</span><input id="eNote" placeholder="${t.phNote}" value="${esc(x.note)}"></label>
+    <button type="button" class="btn danger" id="eDel">${t.deleteExpense}</button>
+    ${sheetButtons(t.save)}`, {form:true, blurEnter:true});
+  $("#eDel", el).onclick = () => { closeSheet(); withUndo(t.tExpenseDeleted, () => { state.expenses = state.expenses.filter(e => e.id!==id); }); };
+  el.onsubmit = e => {
+    e.preventDefault();
+    const a = num($("#eAmt", el).value); if(!(a>0)){ toast(t.tAmount); return; }
+    Object.assign(x, {amount:r2(a), date:$("#eDate", el).value || x.date, note:$("#eNote", el).value.trim()});
+    blurActive(); closeSheet(); commit(); toast(t.tExpenseSaved);
+  };
+}
+
+/* ---- Extra ---- */
+function openExtra(id){
+  const t = T(), x = state.extras.find(e => e.id===id); if(!x) return;
+  const cur = xcatOf(x);
+  const el = sheet(`<h2>${t.editExtraT}</h2>
+    <label class="field"><span>${t.description}</span><input id="eNote" value="${esc(x.note)}"></label>
+    <div class="grid2"><label class="field"><span>${t.amount}</span><input id="eAmt" inputmode="decimal" value="${moneyIn(x.amount)}"></label>
+      <label class="field"><span>${t.date}</span><input id="eDate" type="date" value="${x.date}"></label></div>
+    <label class="field"><span>${t.category}</span><select id="eCat">${XCATS.map(c => `<option value="${c}" ${c===cur ? "selected" : ""}>${t.xcat[c]}</option>`).join("")}</select></label>
+    <button type="button" class="btn danger" id="eDel">${t.deleteExtra}</button>
+    ${sheetButtons(t.save)}`, {form:true, blurEnter:true});
+  $("#eDel", el).onclick = () => { closeSheet(); withUndo(t.tExtraDeleted, () => { state.extras = state.extras.filter(e => e.id!==id); }); };
+  el.onsubmit = e => {
+    e.preventDefault();
+    const a = num($("#eAmt", el).value); if(!(a>0)){ toast(t.tAmount); return; }
+    Object.assign(x, {amount:r2(a), date:$("#eDate", el).value || x.date, note:cap($("#eNote", el).value.trim()) || t.extraDefault, xcat:$("#eCat", el).value});
+    blurActive(); closeSheet(); commit(); toast(t.tExtraSaved);
+  };
+}
+
+/* ---- Salvadanaio: prelievo ---- */
+function openPiggyOut(){
+  const t = T();
+  const el = sheet(`<h2>${t.piggyOutT}</h2>
+    <div class="grid2"><label class="field"><span>${t.amount}</span><input id="pAmt" inputmode="decimal" placeholder="${t.phAmount}"></label>
+      <label class="field"><span>${t.date}</span><input id="pDate" type="date" value="${iso(new Date())}"></label></div>
+    <label class="field"><span>${t.description}</span><input id="pNote" placeholder="${t.phPiggyNote}"></label>
+    ${sheetButtons(t.confirm)}`, {form:true, blurEnter:true});
+  el.onsubmit = e => {
+    e.preventDefault();
+    const a = num($("#pAmt", el).value); if(!(a>0)){ toast(t.tAmount); return; }
+    state.piggyOut.push({id:uid(), amount:r2(a), date:$("#pDate", el).value || iso(new Date()), note:$("#pNote", el).value.trim()});
+    blurActive(); closeSheet(); commit(); toast(t.tPiggyOut(eur(a)));
+  };
+}
+
+/* ---- Fine spesa: conferma, quantità mancanti, scontrino ---- */
+function openEndShop(){
+  const t = T(), sel = state.list.filter(i => i.checked).map(i => ({...i}));
+  if(!sel.length) return;
+  const missing = sel.filter(i => !(i.qty>0) && (i.cat||"food")==="food");
+  const total = missing.length + 1;
+  let step = -1;
+  const bar = cur => `<div class="steps">${Array.from({length:total}, (_,k) => `<i class="${k<=cur ? "on" : ""}"></i>`).join("")}</div>`;
+  function show(){
+    let body;
+    if(step===-1){
+      body = `<div class="head"><div class="label">${t.endLabel}</div><h2>${t.endT(sel.length)}</h2></div>
+        <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${i.qty>0 ? qs(i.qty, i.unit) : i.cat==="home" ? t.home : t.qtyToSet}</span></li>`).join("")}</ul>
+        ${missing.length ? `<p class="hint">${t.willAsk(missing.length)}</p>` : ""}
+        ${sheetButtons(t.confirm)}`;
+    } else if(step < missing.length){
+      const it = missing[step], du = it.unit || unitList()[0];
+      body = `${bar(step)}<div class="head"><div class="label">${t.productOf(step+1, missing.length)}</div><h2>${t.howMuch(esc(it.name.toLowerCase()))}</h2></div>
+        <div class="grid2"><input id="wQty" inputmode="decimal" placeholder="500" value="${it.qty>0 ? qfmt(it.qty) : ""}" aria-label="${t.qty}">
+          <select id="wUnit" aria-label="${t.unit}">${unitList().map(u => `<option value="${u}" ${u===du ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></div>
+        <div class="grid2"><button type="button" class="btn ghost" id="wBack">${t.back}</button><button class="btn" type="submit">${t.next}</button></div>`;
+    } else {
+      body = `${bar(total-1)}<div class="head"><div class="label">${t.lastStep}</div><h2>${t.howMuchSpent}</h2></div>
+        <label class="field"><span>${t.receiptTotal}</span><input id="wAmt" inputmode="decimal" placeholder="${t.phReceipt}"></label>
+        <p class="hint">${t.receiptHint}</p>
+        <div class="grid2"><button type="button" class="btn ghost" id="wBack">${t.back}</button><button class="btn" type="submit">${t.toPantry}</button></div>`;
+    }
+    const el = sheet(body, {form:true});
+    const back = $("#wBack", el); if(back) back.onclick = () => { step--; show(); };
+    el.onsubmit = e => {
+      e.preventDefault();
+      if(step>=0 && step<missing.length){
+        const v = num($("#wQty", el).value); if(!(v>0)){ toast(t.tQtyPos); return; }
+        missing[step].qty = v; missing[step].unit = $("#wUnit", el).value;
+      }
+      if(step===missing.length){ finish(num($("#wAmt", el).value)); return; }
+      step++; show();
+    };
+  }
+  function finish(amt){
+    for(const i of sel){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz", i.cat || "food"); }
+    const ids = new Set(sel.map(i => i.id));
+    state.list = state.list.filter(i => !ids.has(i.id));
+    if(amt>0) state.expenses.push({id:uid(), amount:r2(amt), date:iso(new Date()), note:t.fromList});
+    blurActive(); closeSheet(); commit(); toast(t.tShopDone(sel.length, amt>0 ? eur(amt) : ""));
+  }
+  show();
+}
+function addToPantry(name, qty, unit, cat){
+  const ex = state.items.find(i => sameName(i.name, name) && (i.cat||"food")===cat && DIM[i.unit]===DIM[unit]);
+  if(ex){ if(qty>0) ex.qty = Math.round(((ex.qty||0) + qty*F[unit]/F[ex.unit])*1000)/1000; }
+  else state.items.push({id:uid(), name, qty:qty>0 ? qty : null, unit, cat, added:new Date().toISOString()});
+}
+
+/* ---- Dati di esempio ---- */
+function loadSample(){
+  const t = T(), ex = t.ex, now = new Date().toISOString(), ws = sow(new Date());
+  const fish = {id:uid(), name:ex.fish, qty:300, unit:"g", cat:"food", added:now};
+  const pasta = {id:uid(), name:ex.pasta, qty:500, unit:"g", cat:"food", added:now};
+  const zucc = {id:uid(), name:ex.zucc, qty:4, unit:"pz", cat:"food", added:now};
+  state.items.push(fish, pasta, zucc);
+  state.meals.push({id:uid(), date:iso(ws), slot:"pranzo", name:ex.meal1, ing:[{itemId:fish.id, qty:150},{itemId:zucc.id, qty:2}]});
+  state.meals.push({id:uid(), date:iso(addDays(ws,1)), slot:"cena", name:ex.meal2, ing:[{itemId:pasta.id, qty:100},{itemId:zucc.id, qty:1}]});
+  if(!findFav(ex.meal2)) state.favs.push({id:uid(), name:ex.meal2, ing:[{name:ex.pasta, qty:100, unit:"g"},{name:ex.zucc, qty:1, unit:"pz"}]});
+  state.expenses.push({id:uid(), amount:27.5, date:iso(new Date()), note:ex.shop});
+  state.extras.push({id:uid(), amount:3.5, date:iso(new Date()), note:ex.x1, xcat:"food"}, {id:uid(), amount:9, date:iso(new Date()), note:ex.x2, xcat:"fun"});
+  commit(); toast(t.tExample);
+}
+
+/* =========================================================
+   10. AZIONI (tocchi) E TASTIERA
+   ========================================================= */
+const A = {
+  tab: el => go(el.dataset.tab),
+  back: () => go(ui.prevTab && ui.prevTab!=="settings" ? ui.prevTab : "week"),
+  closeSheet: (el, e) => { if(el.classList.contains("scrim") && e.target!==el) return; blurActive(); closeSheet(); },
+  weekPrev: () => { ui.weekOffset--; render(); },
+  weekNext: () => { ui.weekOffset++; render(); },
+  weekToday: () => { ui.weekOffset = 0; render(); },
+  addMeal: el => openMeal(el.dataset.date, el.dataset.slot),
+  editMeal: el => openMeal(null, null, el.dataset.id),
+  delMeal: el => withUndo(T().tMealRemoved, () => { state.meals = state.meals.filter(m => m.id!==el.dataset.id); }),
+  toggleDone: () => { ui.showDone = !ui.showDone; render(); },
+  pantryCat: el => { ui.pantryCat = el.dataset.cat; render(); },
+  editItem: el => openItem(el.dataset.id),
+  delItem: el => {
+    const id = el.dataset.id, it = itemById(id); if(!it) return;
+    withUndo(isHome(it) ? T().tHomeDone : T().tProductDeleted, () => {
+      state.items = state.items.filter(i => i.id!==id);
+      state.meals.forEach(m => { m.ing = m.ing.filter(g => g.itemId!==id); });
+      state.meals = state.meals.filter(m => m.ing.length || m.name);
+    });
+  },
+  itemToList: el => { const it = itemById(el.dataset.id); if(it && addToList(it.name, it.cat||"food")){ commit(); toast(T().tToList(it.name)); } },
+  toggleCheck: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.checked = !it.checked; commit(); } },
+  flipCat: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.cat = it.cat==="home" ? "food" : "home"; commit(); } },
+  delListItem: el => withUndo(T().tListRemoved, () => { state.list = state.list.filter(i => i.id!==el.dataset.id); }),
+  listCat: el => { ui.listCat = el.dataset.cat==="home" ? "home" : null; $$("[data-act=listCat]").forEach(b => b.setAttribute("aria-pressed", String(b===el))); },
+  endShop: () => openEndShop(),
+  editExpense: el => openExpense(el.dataset.id),
+  editExtra: el => openExtra(el.dataset.id),
+  statsPeriod: el => { ui.statsPeriod = el.dataset.p; render(); },
+  piggyOut: () => openPiggyOut(),
+  delPiggyOut: el => withUndo(T().tWithdrawalDeleted, () => { state.piggyOut = state.piggyOut.filter(o => o.id!==el.dataset.id); }),
+  setOpt: el => {
+    const k = el.dataset.key; let v = el.dataset.val;
+    if(k==="weekStart") v = Number(v);
+    if(String(state.settings[k])===String(v)) return;
+    state.settings[k] = v;
+    if(k==="carry") state.settings.carryFrom = v==="off" ? null : iso(sow(new Date()));
+    if(k==="weekStart") ui.weekOffset = 0;
+    applyTheme(); commit();
+  },
+  delFav: el => withUndo(T().tFavRemoved, () => { state.favs = state.favs.filter(f => f.id!==el.dataset.id); }),
+  backupCopy: () => {
+    const t = T(), txt = JSON.stringify(Object.assign({app:"BudgetBite"}, state));
+    const fallback = () => { const o = $("#bkOut"); o.hidden = false; o.value = txt; o.focus(); o.select(); toast(t.bkSelect); };
+    try{ navigator.clipboard.writeText(txt).then(() => toast(t.bkCopied), fallback); }catch(e){ fallback(); }
+  },
+  restoreOpen: () => { ui.restore = true; render(); },
+  restoreCancel: () => { ui.restore = false; render(); },
+  restoreImport: () => {
+    let o = null;
+    try{ o = JSON.parse($("#bkIn").value.trim()); }catch(e){}
+    if(!o || o.v!==1 || !Array.isArray(o.items)){ toast(T().bkBad); return; }
+    delete o.app; ui.restore = false;
+    withUndo(T().bkDone, () => { state = normalize(o); applyTheme(); });
+  },
+  sample: () => loadSample(),
+  clearAsk: () => { ui.confirmClear = true; render(); },
+  clearCancel: () => { ui.confirmClear = false; render(); },
+  clearAll: () => {
+    ui.confirmClear = false;
+    withUndo(T().tCleared, () => { const b = blank(); for(const k of ["settings","weekly","monthly","extraWeekly","extraMonthly","goal"]) b[k] = state[k]; state = b; });
+  },
+  kbDone: () => { blurActive(); hideKb(); }
+};
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]");
+  if(el && A[el.dataset.act]) A[el.dataset.act](el, e);
+});
+document.addEventListener("keydown", e => {
+  if(e.key==="Escape") closeSheet();
+  if(e.key==="Enter" && e.target.matches && e.target.matches("input")){
+    const f = e.target.form;
+    if(f && f.dataset.enter==="blur"){ e.preventDefault(); e.target.blur(); }
+  }
+});
+// Il tastierino numerico dell'iPhone non ha un tasto per chiudersi: mostriamo "Fine" in alto.
+let kbTimer;
+function hideKb(){ $("#kbRoot").innerHTML = ""; }
+const isTyping = el => el && el.matches && el.matches("input:not([type=checkbox]):not([type=date]),textarea");
+document.addEventListener("focusin", e => {
+  if(!isTyping(e.target)) return;
+  clearTimeout(kbTimer);
+  $("#kbRoot").innerHTML = `<button type="button" class="kbdone" data-act="kbDone">${I.down}${T().kbDone}</button>`;
+});
+document.addEventListener("focusout", () => { kbTimer = setTimeout(() => { if(!isTyping(document.activeElement)) hideKb(); }, 150); });
+
+/* =========================================================
+   11. AVVIO
+   ========================================================= */
+loadLocal();
+try{ const tb = localStorage.getItem(LS_KEY+"-tab"); if(tb && VIEWS[tb] && tb!=="settings") ui.tab = tb; }catch(e){}
+applyTheme();
+render();
+connect();
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
