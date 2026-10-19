@@ -49,6 +49,7 @@
 /* ---------- base ---------- */
 *{box-sizing:border-box}
 html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:none}
+html{background:var(--surface)}
 body{color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
 button,input,select,label,textarea{touch-action:manipulation}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em}
@@ -1558,12 +1559,24 @@ if(window.visualViewport){
   visualViewport.addEventListener("scroll", placeKb);
 }
 
+// Nell'app installata sulla Home, iOS dà alla pagina un'altezza più corta dello schermo
+// (della misura della barra di stato) e in fondo resta una banda vuota: il guscio prende l'altezza dello schermo.
+function fitStandalone(){
+  if(window.navigator.standalone!==true) return;
+  const portrait = !window.matchMedia || matchMedia("(orientation: portrait)").matches;
+  const h = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  const sh = $("#shell"); sh.style.bottom = "auto"; sh.style.height = h + "px";
+}
+window.addEventListener("resize", fitStandalone);
+window.addEventListener("orientationchange", () => setTimeout(fitStandalone, 300));
+
 /* =========================================================
    11. AVVIO
    ========================================================= */
 loadLocal();
 try{ const tb = localStorage.getItem(LS_KEY+"-tab"); if(tb && VIEWS[tb] && tb!=="settings") ui.tab = tb; }catch(e){}
 applyTheme();
+fitStandalone();
 render();
 connect();
 })();
