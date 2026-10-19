@@ -345,7 +345,7 @@ const STR = {
   tMealAdded:"Pasto aggiunto", tMealSaved:"Pasto aggiornato", tMealRemoved:"Pasto rimosso", tFavShort:"salvato tra i preferiti", deleteMeal:"Elimina il pasto",
   pantrySub:"Quello che hai in casa e quanto ne resta.", food:"Alimentari", home:"Casa e igiene", foodShort:"Cibo", homeShort:"Casa", breakfast:"Colazione", bfShort:"Colazione",
   addProduct:"Aggiungi un prodotto", addHomeProduct:"Aggiungi un prodotto per la casa", addBfProduct:"Aggiungi un prodotto per la colazione", phFood:"es. Pesce surgelato", phHome:"es. Detersivo piatti", phBf:"es. Marmellata",
-  available:"Disponibili", finished:"Finiti", show:"Mostra", hide:"Nascondi", inHome:"In casa",
+  available:"Disponibili", inHome:"In casa",
   emptyPantryList:"Qui compare quello che hai comprato, con la quantità che resta dopo aver pianificato i pasti.",
   emptyHome:"Qui finiscono detersivi, prodotti per l'igiene e tutto ciò che non si mangia. Non compaiono tra gli ingredienti dei pasti.",
   emptyBf:"Qui finiscono i prodotti della colazione. L'app non ne chiede la quantità e non li propone per pranzi e cene.",
@@ -403,6 +403,8 @@ const STR = {
   sLang:"Lingua", sUnits:"Unità di misura", sUnitsD:"Le quantità già inserite vengono convertite solo a schermo.", metric:"g · kg · ml · lt", imperial:"oz · lb · fl oz",
   sWeek:"La settimana inizia", monday:"Lunedì", sunday:"Domenica",
   sBudgets:"Budget", sShopBudget:"Spesa", sExtraBudget:"Extra", weekly:"Settimanale €", monthly:"Mensile €", saveBudgets:"Salva i budget",
+  monthOnly:m=>`Solo per ${m}`, monthOnlyD:"Se questo mese hai un budget diverso dal solito, scrivilo qui. Lascia vuoto per usare quello mensile normale.", shopMonth:"Spesa €", extraMonth:"Extra €",
+  monthNote:a=>`Budget solo per questo mese, di solito è ${a}`,
   tBudget:"I budget devono essere maggiori di zero", tBudgetSaved:"Budget salvati",
   sCarry:"Avanzo settimanale", sCarryD:"Cosa fare con quello che resta a fine settimana nei budget di spesa ed extra.",
   carryOff:"Niente", carryNext:"Riporta", carryPiggy:"Salvadanaio",
@@ -451,7 +453,7 @@ const STR = {
   tMealAdded:"Meal added", tMealSaved:"Meal updated", tMealRemoved:"Meal removed", tFavShort:"saved as favourite", deleteMeal:"Delete meal",
   pantrySub:"What you have at home and how much is left.", food:"Food", home:"Home & hygiene", foodShort:"Food", homeShort:"Home", breakfast:"Breakfast", bfShort:"Breakfast",
   addProduct:"Add a product", addHomeProduct:"Add a household product", addBfProduct:"Add a breakfast product", phFood:"e.g. Frozen fish", phHome:"e.g. Dish soap", phBf:"e.g. Jam",
-  available:"Available", finished:"Used up", show:"Show", hide:"Hide", inHome:"At home",
+  available:"Available", inHome:"At home",
   emptyPantryList:"What you bought shows up here, with what's left after planning your meals.",
   emptyHome:"Detergents, toiletries and anything you don't eat go here. They never show up as meal ingredients.",
   emptyBf:"Breakfast products go here. The app doesn't ask their quantity and doesn't suggest them for lunch and dinner.",
@@ -509,6 +511,8 @@ const STR = {
   sLang:"Language", sUnits:"Units", sUnitsD:"Quantities you already entered are converted on screen only.", metric:"g · kg · ml · lt", imperial:"oz · lb · fl oz",
   sWeek:"Week starts on", monday:"Monday", sunday:"Sunday",
   sBudgets:"Budgets", sShopBudget:"Groceries", sExtraBudget:"Extras", weekly:"Weekly €", monthly:"Monthly €", saveBudgets:"Save budgets",
+  monthOnly:m=>`Only for ${m}`, monthOnlyD:"If this month's budget is different from usual, enter it here. Leave empty to use the normal monthly budget.", shopMonth:"Groceries €", extraMonth:"Extras €",
+  monthNote:a=>`Budget for this month only, usually ${a}`,
   tBudget:"Budgets must be above zero", tBudgetSaved:"Budgets saved",
   sCarry:"Weekly leftover", sCarryD:"What to do with what's left at the end of the week in the grocery and extras budgets.",
   carryOff:"Nothing", carryNext:"Carry over", carryPiggy:"Savings jar",
@@ -537,14 +541,18 @@ const LIST_KEYS = ["items","expenses","meals","list","extras","favs","piggyOut"]
 const DEFAULT_BF = ["Arance","Latte","Burro d'arachidi","Marmellata"];
 const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, carry:"off", carryFrom:null, breakfast:[...DEFAULT_BF]});
 const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
-  items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, settings:blankSettings()});
+  items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, monthBudgets:{}, settings:blankSettings()});
 function normalize(s){
   const o = Object.assign(blank(), s && typeof s==="object" ? s : {});
   o.settings = Object.assign(blankSettings(), (s && s.settings) || {});
   for(const k of LIST_KEYS) if(!Array.isArray(o[k])) o[k] = [];
   if(!Array.isArray(o.settings.breakfast)) o.settings.breakfast = [...DEFAULT_BF];
   // Una volta sola: i prodotti della colazione già in lista o in dispensa passano nella categoria Colazione.
-  if(!o.mig || !o.mig.bf1){ markBreakfast(o); o.mig = Object.assign({}, o.mig, {bf1:true}); }
+  if(!o.monthBudgets || typeof o.monthBudgets!=="object" || Array.isArray(o.monthBudgets)) o.monthBudgets = {};
+  o.mig = Object.assign({}, o.mig);
+  if(!o.mig.bf1){ markBreakfast(o); o.mig.bf1 = true; }
+  // Ottobre 2026: budget mensile ridotto (spesa 240 €, extra 234 €), modificabile in Opzioni.
+  if(!o.mig.oct26){ if(!o.monthBudgets["2026-10"]) o.monthBudgets["2026-10"] = {shop:240, extra:234}; o.mig.oct26 = true; }
   return o;
 }
 const normName = s => String(s || "").toLowerCase().replace(/[’‘`´]/g, "'").replace(/\bdi\s+(?=[aeiouàèéìòù])/g, "d'").replace(/\s+/g, " ").trim();
@@ -557,7 +565,7 @@ function markBreakfast(o){
 }
 
 let state = blank();
-const ui = {tab:"week", prevTab:"week", weekOffset:0, showDone:false, pantryCat:"food", listCat:null, statsPeriod:"week", restore:false, confirmClear:false};
+const ui = {tab:"week", prevTab:"week", weekOffset:0, pantryCat:"food", listCat:null, statsPeriod:"week", restore:false, confirmClear:false};
 let dbRef = null, dirty = false, writing = false, saveTimer = null, syncKey = "local";
 const T = () => STR[state.settings.lang] || STR.it;
 
@@ -614,8 +622,16 @@ const mon3 = d => T().months[d.getMonth()].slice(0,3);
 const dayLong = d => T().days[d.getDay()]+" "+d.getDate()+" "+T().months[d.getMonth()];
 const dayShort = d => T().days[d.getDay()].slice(0,3)+" "+d.getDate();
 function rangeLabel(ws){ const we = addDays(ws,6); return ws.getDate()+(ws.getMonth()!==we.getMonth() ? " "+mon3(ws) : "")+"–"+we.getDate()+" "+mon3(we); }
+const monthKey = (d = new Date()) => d.getFullYear()+"-"+pad(d.getMonth()+1);
+// Budget mensile: quello impostato solo per quel mese, se c'è, altrimenti quello normale.
+function monthBudget(kind, d = new Date()){
+  const o = state.monthBudgets[monthKey(d)], v = o && o[kind];
+  return v>0 ? v : (kind==="shop" ? state.monthly : state.extraMonthly);
+}
+const hasMonthBudget = (kind, d = new Date()) => { const o = state.monthBudgets[monthKey(d)]; return !!(o && o[kind]>0); };
 function monthBounds(d = new Date()){ return [iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(new Date(d.getFullYear(), d.getMonth()+1, 0)), T().months[d.getMonth()]]; }
 const sameName = (a,b) => a.trim().toLowerCase() === b.trim().toLowerCase();
+const boughtAt = i => i.bought || i.added || "";
 const cap = s => s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
 
 // Unità: le quantità restano nell'unità del prodotto, la conversione è solo a schermo.
@@ -657,7 +673,7 @@ function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!
 function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
 const spentShop = (a,b) => state.expenses.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
 const spentExtra = (a,b) => state.extras.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
-const inList = name => state.list.some(l => !l.checked && sameName(l.name, name));
+const inList = name => state.list.some(l => !l.checked && nameScore(l.name, name)>=2);
 function addToList(name, cat, qty, unit){
   if(inList(name)) return false;
   state.list.push({id:uid(), name, qty:qty>0?qty:null, unit:qty>0?unit:null, checked:false, cat:cat||"food"});
@@ -734,6 +750,26 @@ function parseExtra(txt){
   return {amount:r2(last.v), note:cap(note) || T().extraDefault};
 }
 
+// Nomi simili: "cavoletti" e "Cavoletti di Bruxelles", "zucchina" e "zucchine", "pollo" e "petto di pollo".
+// Si tolgono le parole di collegamento, si confrontano le radici delle parole (senza la vocale finale) e
+// un nome vale per l'altro se tutte le sue parole compaiono nell'altro.
+const STOPWORDS = new Set(["di","d","de","del","dello","della","dei","degli","delle","al","allo","alla","ai","agli","alle","con","e","ed","il","lo","la","i","gli","le","l","un","uno","una","in","a","da","per","the","of","and","with"]);
+const SYNONYMS = {rughett:"rucol", ciliegin:"pomodorin", datterin:"pomodorin", pachin:"pomodorin"};
+function nameTokens(s){
+  return normName(s).replace(/['’]/g, " ").replace(/[^a-z0-9àèéìòóù ]/g, " ").split(/\s+/)
+    .filter(w => w && !STOPWORDS.has(w))
+    .map(w => { const r = w.length>3 ? w.replace(/[aeiouàèéìòóù]+$/, "") : w; return SYNONYMS[r] || r; });
+}
+// 3 = stesso nome, 2 = uno contiene l'altro e iniziano uguale, 1 = uno contiene l'altro, 0 = diversi.
+function nameScore(a, b){
+  const A = nameTokens(a), B = nameTokens(b);
+  if(!A.length || !B.length) return 0;
+  if(A.join(" ")===B.join(" ")) return 3;
+  const [S, L] = A.length<=B.length ? [A, B] : [B, A];
+  if(!S.every(w => L.includes(w))) return 0;
+  return S[0]===L[0] ? 2 : 1;
+}
+
 // Piatti preferiti.
 const findFav = name => name ? state.favs.find(f => sameName(f.name, name)) : null;
 function saveFav(name, ing){
@@ -745,8 +781,10 @@ function saveFav(name, ing){
 function planFav(f){
   const rows = [], missing = [];
   for(const g of f.ing){
-    const cands = state.items.filter(i => isFood(i) && sameName(i.name, g.name) && remaining(i)>0 && !rows.some(r => r.itemId===i.id));
-    const it = cands.find(i => DIM[i.unit]===DIM[g.unit]) || cands[0];
+    const cands = state.items.filter(i => isFood(i) && remaining(i)>0 && !rows.some(r => r.itemId===i.id))
+      .map(i => ({i, s:nameScore(i.name, g.name), d:DIM[i.unit]===DIM[g.unit] ? 1 : 0})).filter(x => x.s>0)
+      .sort((x,y) => y.s-x.s || y.d-x.d);
+    const it = cands.length ? cands[0].i : null;
     if(!it){ missing.push({name:g.name, qty:g.qty, unit:g.unit}); continue; }
     const rem = remaining(it);
     if(DIM[it.unit]!==DIM[g.unit]){ rows.push({itemId:it.id, qty:rem}); continue; }
@@ -884,20 +922,17 @@ function viewPantry(){
       <label class="field"><span>${t.unit}</span><select id="itUnit">${unitList().map(u => `<option value="${u}" ${u===(plain ? "pz" : unitList()[0]) ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></label></div>
     <button class="btn" type="submit">${t.add}</button></form>`;
   if(plain){
-    const list = state.items.filter(i => catOf(i)===cat).sort((a,b) => b.added.localeCompare(a.added));
+    const list = state.items.filter(i => catOf(i)===cat).sort((a,b) => boughtAt(b).localeCompare(boughtAt(a)));
     h += `<div class="sechead"><h2>${t.inHome} <span class="muted num">${list.length}</span></h2></div>`;
     if(!list.length) h += `<div class="empty"><span class="muted small">${cat==="home" ? t.emptyHome : t.emptyBf}</span></div>`;
     return h + `<div class="stack">${list.map(plainCard).join("")}</div>`;
   }
-  const list = state.items.filter(isFood).sort((a,b) => (remaining(b)>0)-(remaining(a)>0) || b.added.localeCompare(a.added));
-  const avail = list.filter(i => remaining(i)>0), done = list.filter(i => remaining(i)<=0);
+  // I prodotti finiti spariscono dalla dispensa ma restano nei dati, per i pasti già fatti e per l'analisi.
+  // Quando li ricompri dalla lista tornano disponibili.
+  const avail = state.items.filter(i => isFood(i) && remaining(i)>0).sort((a,b) => boughtAt(b).localeCompare(boughtAt(a)));
   h += `<div class="sechead"><h2>${t.available} <span class="muted num">${avail.length}</span></h2></div>`;
   if(!avail.length) h += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
   h += `<div class="stack">${avail.map(foodCard).join("")}</div>`;
-  if(done.length){
-    h += `<div class="sechead"><h2>${t.finished} <span class="muted num">${done.length}</span></h2><button class="link" data-act="toggleDone">${ui.showDone ? t.hide : t.show}</button></div>`;
-    if(ui.showDone) h += `<div class="stack">${done.map(foodCard).join("")}</div>`;
-  }
   return h;
 }
 function listBtn(it){
@@ -913,7 +948,7 @@ function foodCard(it){
     <div class="h"><b>${esc(it.name)}</b><span class="q num"><b>${qfmt(toDisp(r, it.unit)[0])}</b> <span class="muted">/ ${qfmt(tq)} ${ul(tu)}</span></span></div>
     <div class="ibar"><i style="width:${pct}%"></i></div>
     <div class="uses">${uses.length ? t.usedIn + uses.map(esc).join(" · ") : t.notUsed}</div>
-    <div class="actions">${r<=0 ? listBtn(it) : ""}<button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.del}</button></div></div>`;
+    <div class="actions"><button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.del}</button></div></div>`;
 }
 function plainCard(it){
   const t = T();
@@ -927,7 +962,7 @@ function viewShop(){
   const c = weekBudget("shop", ws), [a,b] = weekRange(ws);
   let h = pagehead(t.tabShop, t.shopSub) + `<div class="stack">`
     + hero({title:t.leftWeek, spent:spentShop(a,b), budget:c.eff, brand:true, note:carryNote(c)})
-    + hero({title:t.leftMonth(mName), spent:spentShop(ma,mb), budget:state.monthly}) + `</div>`;
+    + hero({title:t.leftMonth(mName), spent:spentShop(ma,mb), budget:monthBudget("shop"), note:hasMonthBudget("shop") ? t.monthNote(eur(state.monthly)) : ""}) + `</div>`;
   h += `<form class="card form mt" id="expForm" data-enter="blur" autocomplete="off">
     <div class="label">${t.logExpense}</div>
     <div class="grid2"><label class="field"><span>${t.amount}</span><input id="exAmt" inputmode="decimal" placeholder="${t.phAmount}"></label>
@@ -948,7 +983,7 @@ function viewExtra(){
   const c = weekBudget("extra", ws), [a,b] = weekRange(ws);
   let h = pagehead(t.tabExtra, t.extraSub) + `<div class="stack">`
     + hero({title:t.leftWeek, spent:spentExtra(a,b), budget:c.eff, brand:true, kind:"e", note:carryNote(c)})
-    + hero({title:t.leftMonth(mName), spent:spentExtra(ma,mb), budget:state.extraMonthly, kind:"e"}) + `</div>`;
+    + hero({title:t.leftMonth(mName), spent:spentExtra(ma,mb), budget:monthBudget("extra"), kind:"e", note:hasMonthBudget("extra") ? t.monthNote(eur(state.extraMonthly)) : ""}) + `</div>`;
   h += `<form class="card form mt" id="extraForm" autocomplete="off">
     <label class="field"><span>${t.extraWhat}</span><input id="xIn" placeholder="${t.phExtra}"></label>
     <div class="grid2" style="align-items:end"><label class="field"><span>${t.date}</span><input id="xDate" type="date" value="${iso(now)}"></label>
@@ -971,7 +1006,7 @@ function viewStats(){
     shopB = weekBudget("shop", ws).eff; extraB = weekBudget("extra", ws).eff; label = rangeLabel(ws);
   } else {
     let mName; [a,b,mName] = monthBounds(); days = parseIso(b).getDate(); elapsed = now.getDate();
-    shopB = state.monthly; extraB = state.extraMonthly; label = mName;
+    shopB = monthBudget("shop"); extraB = monthBudget("extra"); label = mName;
   }
   const shop = spentShop(a,b), extra = spentExtra(a,b), tot = shop+extra, totB = shopB+extraB, left = totB-tot;
   const scale = Math.max(totB, tot) || 1, rem = days-elapsed, proj = x => x/elapsed*days;
@@ -1031,7 +1066,7 @@ function viewStats(){
   for(let k = 5; k >= 0; k--){
     const d = new Date(now.getFullYear(), now.getMonth()-k, 1), [x,y] = monthBounds(d);
     if(y < firstDate) continue;
-    const s = spentShop(x,y), e = spentExtra(x,y), diff = state.monthly + state.extraMonthly - s - e;
+    const s = spentShop(x,y), e = spentExtra(x,y), diff = monthBudget("shop", d) + monthBudget("extra", d) - s - e;
     rows.push(`<tr><td>${mon3(d)} ${String(d.getFullYear()).slice(2)}</td><td>${eur(s)}</td><td>${eur(e)}</td><td class="${diff<0 ? "badc" : "good"}"><b>${diff>=0 ? "+" : ""}${eur(diff)}</b></td></tr>`);
   }
   h += `<div class="sechead"><h2>${t.last6}</h2></div><div class="card tablewrap"><table class="mtab num"><thead><tr><th>${t.colMonth}</th><th>${t.colShop}</th><th>${t.colExtra}</th><th>${t.colDiff}</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
@@ -1059,7 +1094,7 @@ function viewStats(){
   // Cucina e dispensa
   const [wa, wb] = weekRange(sow(now));
   const slots = new Set(state.meals.filter(m => m.date>=wa && m.date<=wb).map(m => m.date+m.slot)).size;
-  const added = state.items.filter(i => { const d = (i.added||"").slice(0,10); return d>=a && d<=b; });
+  const added = state.items.filter(i => { const d = boughtAt(i).slice(0,10); return d>=a && d<=b; });
   h += `<div class="sechead"><h2>${t.kitchen}</h2></div><div class="tiles num">
     <div class="tile"><span class="s">${t.mealsPlanned}</span><span class="v">${slots} <span class="s">${t.ofN(14)}</span></span></div>
     <div class="tile"><span class="s">${t.inPantryNow}</span><span class="v">${state.items.filter(i => isFood(i) && remaining(i)>0).length}</span></div>
@@ -1085,6 +1120,9 @@ function viewSettings(){
     <div class="grid2"><label class="field"><span>${t.weekly}</span><input id="bW" inputmode="decimal" value="${moneyIn(state.weekly)}"></label><label class="field"><span>${t.monthly}</span><input id="bM" inputmode="decimal" value="${moneyIn(state.monthly)}"></label></div>
     <div class="label">${t.sExtraBudget}</div>
     <div class="grid2"><label class="field"><span>${t.weekly}</span><input id="xW" inputmode="decimal" value="${moneyIn(state.extraWeekly)}"></label><label class="field"><span>${t.monthly}</span><input id="xM" inputmode="decimal" value="${moneyIn(state.extraMonthly)}"></label></div>
+    <div class="label" style="margin-top:6px">${t.monthOnly(monthBounds()[2])}</div><p class="hint">${t.monthOnlyD}</p>
+    <div class="grid2"><label class="field"><span>${t.shopMonth}</span><input id="oS" inputmode="decimal" placeholder="${moneyIn(state.monthly)}" value="${hasMonthBudget("shop") ? moneyIn(monthBudget("shop")) : ""}"></label>
+      <label class="field"><span>${t.extraMonth}</span><input id="oX" inputmode="decimal" placeholder="${moneyIn(state.extraMonthly)}" value="${hasMonthBudget("extra") ? moneyIn(monthBudget("extra")) : ""}"></label></div>
     <button class="btn" type="submit">${t.saveBudgets}</button></form>`;
   h += `<div class="card mt" style="display:grid;gap:10px"><div class="t" style="font-weight:700">${t.sCarry}</div><p class="hint">${t.sCarryD}</p>
     ${seg("carry", [["off",t.carryOff],["next",t.carryNext],["piggy",t.carryPiggy]])}
@@ -1170,7 +1208,11 @@ function bindForms(){
   });
   on("#budgetForm", () => {
     const v = ["#bW","#bM","#xW","#xM"].map(s => num($(s).value)); if(v.some(x => !(x>0))){ toast(t.tBudget); return; }
-    [state.weekly, state.monthly, state.extraWeekly, state.extraMonthly] = v.map(r2); blurActive(); commit(); toast(t.tBudgetSaved);
+    const ov = ["#oS","#oX"].map(s => $(s).value.trim() ? num($(s).value) : null); if(ov.some(x => x!==null && !(x>0))){ toast(t.tBudget); return; }
+    [state.weekly, state.monthly, state.extraWeekly, state.extraMonthly] = v.map(r2);
+    if(ov[0]===null && ov[1]===null) delete state.monthBudgets[monthKey()];
+    else state.monthBudgets[monthKey()] = {shop:ov[0]===null ? null : r2(ov[0]), extra:ov[1]===null ? null : r2(ov[1])};
+    blurActive(); commit(); toast(t.tBudgetSaved);
   });
   on("#bfForm", () => {
     const v = cap($("#bfIn").value.trim()); if(!v) return;
@@ -1439,6 +1481,7 @@ function addToPantry(name, qty, unit, cat){
   // Colazione e casa: un solo prodotto per nome, anche se le unità non coincidono.
   const ex = state.items.find(i => sameName(i.name, name) && catOf(i)===cat && (cat!=="food" || DIM[i.unit]===DIM[unit]));
   if(ex){
+    ex.bought = new Date().toISOString();
     if(qty>0 && ex.qty==null){ ex.qty = qty; ex.unit = unit; }
     else if(qty>0 && DIM[ex.unit]===DIM[unit]) ex.qty = Math.round((ex.qty + qty*F[unit]/F[ex.unit])*1000)/1000;
   }
@@ -1473,7 +1516,6 @@ const A = {
   addMeal: el => openMeal(el.dataset.date, el.dataset.slot),
   editMeal: el => openMeal(null, null, el.dataset.id),
   delMeal: el => withUndo(T().tMealRemoved, () => { state.meals = state.meals.filter(m => m.id!==el.dataset.id); }),
-  toggleDone: () => { ui.showDone = !ui.showDone; render(); },
   pantryCat: el => { ui.pantryCat = el.dataset.cat; render(); },
   editItem: el => openItem(el.dataset.id),
   delItem: el => {
@@ -1525,7 +1567,7 @@ const A = {
   clearCancel: () => { ui.confirmClear = false; render(); },
   clearAll: () => {
     ui.confirmClear = false;
-    withUndo(T().tCleared, () => { const b = blank(); for(const k of ["settings","weekly","monthly","extraWeekly","extraMonthly","goal"]) b[k] = state[k]; state = b; });
+    withUndo(T().tCleared, () => { const b = blank(); for(const k of ["settings","weekly","monthly","extraWeekly","extraMonthly","goal","monthBudgets"]) b[k] = state[k]; state = b; });
   },
   kbDone: () => { blurActive(); hideKb(); setTimeout(resetViewport, 80); }
 };
