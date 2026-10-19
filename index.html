@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
 <title>BudgetBite</title>
@@ -48,9 +48,8 @@
 
 /* ---------- base ---------- */
 *{box-sizing:border-box}
-html,body{background:var(--bg)}
+html,body{background:var(--bg);height:100%;overflow:hidden;overscroll-behavior:none}
 body{color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,select,label,textarea{touch-action:manipulation}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em}
 h1{font-size:1.85rem;font-weight:800;line-height:1.1}
@@ -75,7 +74,14 @@ input::placeholder{color:var(--muted);opacity:.8}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* ---------- layout ---------- */
-.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+/* Guscio a schermo intero: la pagina non scorre, scorre solo il contenuto. Così su iPhone barra e tab restano sempre al loro posto. */
+.shell{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+#bar{flex:none}
+.stage{flex:1;min-height:0;position:relative}
+.scroller{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.dock{flex:none;background:var(--bg);border-top:1px solid var(--line);padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.dock .btn{display:flex;width:100%;max-width:528px;margin:0 auto;min-height:52px}
+.appbar{background:var(--bg)}
 .appbar .in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:10px;min-height:64px}
 .appbar svg.logo{width:34px;height:34px;flex:none;border-radius:9px}
 .brandname{font-family:var(--display);font-weight:800;font-size:1.2rem;letter-spacing:-.02em;flex:1}
@@ -86,7 +92,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 .iconbtn svg{width:22px;height:22px}
 .backbtn{display:inline-flex;align-items:center;gap:2px;min-height:44px;width:96px;padding:0 12px 0 6px;border-radius:14px;background:var(--sunk);font-weight:700;flex:none}
 .backbtn svg{width:22px;height:22px}
-.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:6px calc(108px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:6px 32px}
 .pagehead{margin:4px 0 16px;display:grid;gap:4px}
 .pagehead p{color:var(--muted);font-size:.92rem}
 .sechead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:28px 0 10px}
@@ -186,8 +192,6 @@ input::placeholder{color:var(--muted);opacity:.8}
 .ck{width:40px;height:40px;border-radius:12px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:var(--on-accent);background:var(--surface)}
 .ck svg{width:20px;height:20px}
 .li.on .ck{background:var(--accent);border-color:var(--accent)}
-.endbar{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom,0px));margin-top:16px;display:grid}
-.endbar .btn{box-shadow:0 8px 22px rgba(10,40,38,.25);min-height:54px}
 
 /* ---------- money rows ---------- */
 .rowbtn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 2px;border-bottom:1px solid var(--line);min-height:60px}
@@ -236,7 +240,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 .favrow .nm span{font-size:.8rem;color:var(--muted);overflow-wrap:anywhere}
 
 /* ---------- tab bar ---------- */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+.tabs{flex:none;background:var(--surface);border-top:1px solid var(--line);
   padding:6px max(4px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px));display:flex;justify-content:center}
 .tabs .in{display:grid;grid-template-columns:repeat(6,1fr);width:100%;max-width:560px}
 .tabs button{min-height:54px;padding:6px 0;border-radius:14px;font-weight:700;font-size:.64rem;letter-spacing:-.01em;color:var(--muted);display:grid;justify-items:center;align-content:center;gap:3px;text-align:center}
@@ -253,6 +257,23 @@ input::placeholder{color:var(--muted);opacity:.8}
 .sheet .head{display:grid;gap:4px}
 .ingr{display:grid;grid-template-columns:minmax(0,1fr) 96px 40px;gap:6px;align-items:end}
 .ingr .ingleft{grid-column:1/-1;margin-top:-2px}
+.pickbtn{width:100%;height:50px;border:1px solid var(--line);border-radius:12px;background:var(--bg);display:flex;align-items:center;gap:6px;padding:0 10px 0 14px;font-size:16px;text-align:left;min-width:0}
+.pickbtn b{flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pickbtn svg{width:18px;height:18px;color:var(--muted);flex:none}
+.addingr{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border:1.5px dashed var(--line);border-radius:14px;color:var(--accent);font-weight:700}
+.addingr svg{width:20px;height:20px}
+.pscrim{position:fixed;inset:0;z-index:35;background:rgba(5,20,19,.35);display:flex;align-items:flex-end;justify-content:center}
+.picker{background:var(--surface);width:100%;max-width:560px;max-height:75vh;max-height:75dvh;border-radius:24px 24px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 30px rgba(0,0,0,.18);animation:up .2s ease-out;
+  padding:14px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.plist{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.pitem{display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%;min-height:54px;padding:14px 4px;border-bottom:1px solid var(--line)}
+.pitem b{font-weight:600;overflow-wrap:anywhere;min-width:0}
+.pitem span{color:var(--muted);font-size:.85rem;flex:none}
+.pitem.on b{color:var(--accent)}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{display:inline-flex;align-items:center;background:var(--coin-soft);color:var(--coin-deep);border-radius:99px;padding:0 2px 0 14px;min-height:38px;font-weight:700;font-size:.9rem}
+.tag .x{width:34px;height:34px;color:inherit}
 .ingr+.ingr{padding-top:10px;border-top:1px dashed var(--line)}
 .favs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .favs::-webkit-scrollbar{display:none}
@@ -265,16 +286,19 @@ input::placeholder{color:var(--muted);opacity:.8}
 .sum{margin:0;padding-left:18px}.sum li{padding:3px 0}
 
 /* ---------- toast & keyboard ---------- */
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:8px 8px 8px 16px;border-radius:14px;font-size:.9rem;font-weight:600;z-index:45;width:max-content;max-width:calc(100% - 32px);display:flex;align-items:center;gap:12px;min-height:44px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:var(--toastB,92px);background:var(--fg);color:var(--bg);padding:8px 8px 8px 16px;border-radius:14px;font-size:.9rem;font-weight:600;z-index:45;width:max-content;max-width:calc(100% - 32px);display:flex;align-items:center;gap:12px;min-height:44px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .toast span{padding-right:8px}
 .toast button{color:var(--coin);font-weight:800;min-height:36px;padding:0 10px;border-radius:10px;flex:none}
 .kbdone{position:fixed;z-index:60;top:calc(env(safe-area-inset-top,0px) + 12px);right:max(16px,env(safe-area-inset-right,0px));background:var(--fg);color:var(--bg);border-radius:99px;min-height:40px;padding:0 16px 0 12px;font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .kbdone svg{width:18px;height:18px}
 </style>
 
-<div id="bar"></div>
-<main class="wrap" id="app"></main>
-<nav class="tabs" id="tabs"></nav>
+<div class="shell" id="shell">
+  <div id="bar"></div>
+  <div class="stage"><div class="scroller" id="scroller"><main class="wrap" id="app"></main></div></div>
+  <div class="dock" id="dock" hidden></div>
+  <nav class="tabs" id="tabs"></nav>
+</div>
 <div id="sheetRoot"></div>
 <div id="toastRoot" aria-live="polite"></div>
 <div id="kbRoot"></div>
@@ -296,7 +320,7 @@ const STR = {
   settings:"Opzioni", back:"Indietro", kbDone:"Fine", undo:"Annulla", tRestored:"Ripristinato",
   cancel:"Annulla", save:"Salva", add:"Aggiungi", del:"Elimina", edit:"Modifica", close:"Chiudi", confirm:"Conferma", next:"Avanti", no:"No",
   name:"Nome", qty:"Quantità", qtyOpt:"Quantità (facoltativa)", unit:"Unità", amount:"Importo €", date:"Data", left:"restano",
-  qtyIn:u=>`Quantità (${u})`, inPantryLeft:(q,n)=>`In dispensa ne ${n===1?"resta":"restano"} ${q}`,
+  qtyIn:u=>`Quantità (${u})`, phQty:"es. 300", inPantryLeft:(q,n)=>`In dispensa ne ${n===1?"resta":"restano"} ${q}`,
   weekSub:"Pranzi e cene, con gli ingredienti presi dalla dispensa.",
   thisWeek:"Questa settimana", nextWeek:"Prossima settimana", lastWeek:"Settimana scorsa", backToday:"Torna a oggi",
   prevWeekA:"Settimana precedente", nextWeekA:"Settimana successiva", today:"oggi", lunch:"Pranzo", dinner:"Cena",
@@ -305,8 +329,8 @@ const STR = {
   emptyPantryD:"Dopo la spesa aggiungi in Dispensa cosa hai comprato e quanto, oppure usa la Lista. Poi qui assegni le porzioni a pranzi e cene e vedi cosa resta.",
   goPantry:"Vai alla dispensa", tryExample:"Prova un esempio",
   mealAddT:"Aggiungi un pasto", mealEditT:"Modifica il pasto", favorites:"Piatti preferiti", mealName:"Nome del piatto", phMeal:"es. Pesce al forno",
-  ingFromPantry:"Ingredienti dalla dispensa", ingredient:"Ingrediente", removeIng:"Togli l'ingrediente", anotherIng:"+ Aggiungi ingrediente",
-  noIngYet:"Nessun ingrediente. Puoi salvare anche solo il nome del piatto.",
+  ingFromPantry:"Ingredienti dalla dispensa", ingredient:"Ingrediente", removeIng:"Togli l'ingrediente", addIng:"Aggiungi ingrediente",
+  pickT:"Scegli un ingrediente", pickEmpty:"In dispensa non c'è altro da aggiungere.",
   pantryEmptyHint:"La dispensa è vuota. Puoi salvare solo il nome del piatto, oppure aggiungere prima i prodotti in Dispensa.",
   mealHint:"Le quantità vengono scalate dalla dispensa. Quello che avanza resta disponibile per altri pasti.",
   saveFav:"Salva tra i piatti preferiti", updateFav:"Aggiorna il piatto preferito con questi ingredienti",
@@ -315,20 +339,21 @@ const STR = {
   missingT:"Non hai tutto in dispensa", missNone:n=>`${n}, da comprare`, missShort:(nm,q,n)=>`${nm}, ne ${n===1?"resta":"restano"} solo ${q}`,
   toList:"Aggiungi alla lista", tAddedToList:k=>k===1?"1 prodotto aggiunto alla lista":`${k} prodotti aggiunti alla lista`, tAllInList:"È già tutto in lista",
   tMealAdded:"Pasto aggiunto", tMealSaved:"Pasto aggiornato", tMealRemoved:"Pasto rimosso", tFavShort:"salvato tra i preferiti", deleteMeal:"Elimina il pasto",
-  pantrySub:"Quello che hai in casa e quanto ne resta.", food:"Alimentari", home:"Casa e igiene", foodShort:"Cibo", homeShort:"Casa",
-  addProduct:"Aggiungi un prodotto", addHomeProduct:"Aggiungi un prodotto per la casa", phFood:"es. Pesce surgelato", phHome:"es. Detersivo piatti",
+  pantrySub:"Quello che hai in casa e quanto ne resta.", food:"Alimentari", home:"Casa e igiene", foodShort:"Cibo", homeShort:"Casa", breakfast:"Colazione", bfShort:"Colazione",
+  addProduct:"Aggiungi un prodotto", addHomeProduct:"Aggiungi un prodotto per la casa", addBfProduct:"Aggiungi un prodotto per la colazione", phFood:"es. Pesce surgelato", phHome:"es. Detersivo piatti", phBf:"es. Marmellata",
   available:"Disponibili", finished:"Finiti", show:"Mostra", hide:"Nascondi", inHome:"In casa",
   emptyPantryList:"Qui compare quello che hai comprato, con la quantità che resta dopo aver pianificato i pasti.",
   emptyHome:"Qui finiscono detersivi, prodotti per l'igiene e tutto ciò che non si mangia. Non compaiono tra gli ingredienti dei pasti.",
+  emptyBf:"Qui finiscono i prodotti della colazione. L'app non ne chiede la quantità e non li propone per pranzi e cene.",
   usedIn:"Usato in ", notUsed:"Non ancora usato", backToList:"Rimetti in lista", inListAlready:"Già in lista", finishedBtn:"Finito",
-  tAdded:n=>`${n} in dispensa`, tProductDeleted:"Prodotto eliminato", tHomeDone:"Prodotto tolto dalla casa", tToList:n=>`${n} in lista`,
+  tAdded:n=>`${n} in dispensa`, tProductDeleted:"Prodotto eliminato", tPlainDone:"Prodotto segnato come finito", tToList:n=>`${n} in lista`,
   editProduct:"Modifica il prodotto", alreadyUsed:q=>`Nei pasti è già previsto l'uso di ${q}, quindi la quantità totale non può essere inferiore.`,
   qtyTooLow:q=>`Quantità troppo bassa, nei pasti è già previsto l'uso di ${q}`,
   cantChangeKind:"Questo prodotto è già usato nei pasti, puoi passare solo a un'unità dello stesso tipo",
   tNameQty:"Inserisci il nome e una quantità maggiore di zero", tSaved:"Salvato",
   listTitle:"Lista della spesa", listSub:"Spunta i prodotti man mano che li metti nel carrello.", phList:"es. Pesce 300g", listAdd:"Prodotto da comprare",
-  autoCat:"Riconosci da solo",
-  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce, altrimenti te la chiede a fine spesa per gli alimentari. Detersivi, shampoo e simili vanno in Casa da soli, tocca l'etichetta per cambiarla.",
+  autoCat:"Automatico",
+  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce. Altrimenti a fine spesa te la chiede, ma solo per gli alimentari di pranzi e cene. Casa e colazione vengono riconosciute da sole, tocca l'etichetta per cambiarla.",
   emptyList:"La lista è vuota. Aggiungi quello che vuoi comprare, poi al supermercato spunta i prodotti man mano.",
   toBuy:"Da prendere", inCart:"Nel carrello", endShop:n=>`Fine spesa · ${n} ${n===1?"prodotto":"prodotti"}`,
   check:"Spunta", uncheck:"Togli la spunta a", changeCat:"Cambia categoria di", removeFromList:"Togli dalla lista", tListRemoved:"Prodotto tolto dalla lista",
@@ -380,6 +405,8 @@ const STR = {
   carryNextHint:"Quello che avanza si aggiunge al budget della settimana dopo. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
   carryPiggyHint:"Quello che avanza ogni settimana finisce nel salvadanaio, che trovi in Analisi. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
   goalName:"Obiettivo (facoltativo)", phGoal:"es. Vacanza", goalAmount:"Cifra da raggiungere €", phGoalAmt:"es. 300", saveGoal:"Salva l'obiettivo", tGoalSaved:"Obiettivo salvato",
+  sBf:"Prodotti della colazione", sBfD:"Per questi prodotti l'app non chiede la quantità a fine spesa e non li propone per pranzi e cene. Valgono anche i nomi che iniziano così, come “Latte di soia”.",
+  phBfAdd:"es. Biscotti", noBf:"Nessun prodotto.", tBfAdded:"Elenco della colazione aggiornato", tBfRemoved:"Tolto dall'elenco della colazione", bfExists:"È già nell'elenco",
   sFavs:"Piatti preferiti", sFavsD:"Si creano dal foglio di un pasto, con “Salva tra i piatti preferiti”.", noFavs:"Ancora nessun piatto preferito.",
   removeFav:"Togli dai preferiti", tFavRemoved:"Piatto tolto dai preferiti",
   sData:"Dati", sync:{local:"Salvati su questo dispositivo",synced:"Sincronizzati e salvati",ro:"Solo lettura, modifiche salvate qui",fail:"Sincronizzazione non riuscita, salvati qui"},
@@ -399,7 +426,7 @@ const STR = {
   settings:"Settings", back:"Back", kbDone:"Done", undo:"Undo", tRestored:"Restored",
   cancel:"Cancel", save:"Save", add:"Add", del:"Delete", edit:"Edit", close:"Close", confirm:"Confirm", next:"Next", no:"No",
   name:"Name", qty:"Quantity", qtyOpt:"Quantity (optional)", unit:"Unit", amount:"Amount €", date:"Date", left:"left",
-  qtyIn:u=>`Quantity (${u})`, inPantryLeft:q=>`${q} left in the pantry`,
+  qtyIn:u=>`Quantity (${u})`, phQty:"e.g. 300", inPantryLeft:q=>`${q} left in the pantry`,
   weekSub:"Lunches and dinners, with ingredients taken from the pantry.",
   thisWeek:"This week", nextWeek:"Next week", lastWeek:"Last week", backToday:"Back to today",
   prevWeekA:"Previous week", nextWeekA:"Next week", today:"today", lunch:"Lunch", dinner:"Dinner",
@@ -408,8 +435,8 @@ const STR = {
   emptyPantryD:"After shopping, add what you bought and how much in the Pantry, or use the List. Then plan lunches and dinners here and see what's left.",
   goPantry:"Go to pantry", tryExample:"Try an example",
   mealAddT:"Add a meal", mealEditT:"Edit meal", favorites:"Favourite dishes", mealName:"Dish name", phMeal:"e.g. Baked fish",
-  ingFromPantry:"Ingredients from the pantry", ingredient:"Ingredient", removeIng:"Remove ingredient", anotherIng:"+ Add ingredient",
-  noIngYet:"No ingredients. You can also save just the dish name.",
+  ingFromPantry:"Ingredients from the pantry", ingredient:"Ingredient", removeIng:"Remove ingredient", addIng:"Add ingredient",
+  pickT:"Choose an ingredient", pickEmpty:"Nothing else to add from the pantry.",
   pantryEmptyHint:"Your pantry is empty. You can save just the dish name, or add products to the Pantry first.",
   mealHint:"Quantities are taken from the pantry. Whatever is left stays available for other meals.",
   saveFav:"Save as a favourite dish", updateFav:"Update the favourite dish with these ingredients",
@@ -418,20 +445,21 @@ const STR = {
   missingT:"Not everything is in the pantry", missNone:n=>`${n}, to buy`, missShort:(n,q)=>`${n}, only ${q} left`,
   toList:"Add to list", tAddedToList:k=>k===1?"1 item added to the list":`${k} items added to the list`, tAllInList:"Everything is already on the list",
   tMealAdded:"Meal added", tMealSaved:"Meal updated", tMealRemoved:"Meal removed", tFavShort:"saved as favourite", deleteMeal:"Delete meal",
-  pantrySub:"What you have at home and how much is left.", food:"Food", home:"Home & hygiene", foodShort:"Food", homeShort:"Home",
-  addProduct:"Add a product", addHomeProduct:"Add a household product", phFood:"e.g. Frozen fish", phHome:"e.g. Dish soap",
+  pantrySub:"What you have at home and how much is left.", food:"Food", home:"Home & hygiene", foodShort:"Food", homeShort:"Home", breakfast:"Breakfast", bfShort:"Breakfast",
+  addProduct:"Add a product", addHomeProduct:"Add a household product", addBfProduct:"Add a breakfast product", phFood:"e.g. Frozen fish", phHome:"e.g. Dish soap", phBf:"e.g. Jam",
   available:"Available", finished:"Used up", show:"Show", hide:"Hide", inHome:"At home",
   emptyPantryList:"What you bought shows up here, with what's left after planning your meals.",
   emptyHome:"Detergents, toiletries and anything you don't eat go here. They never show up as meal ingredients.",
+  emptyBf:"Breakfast products go here. The app doesn't ask their quantity and doesn't suggest them for lunch and dinner.",
   usedIn:"Used in ", notUsed:"Not used yet", backToList:"Add back to list", inListAlready:"On the list", finishedBtn:"Used up",
-  tAdded:n=>`${n} added to the pantry`, tProductDeleted:"Product deleted", tHomeDone:"Product removed from home", tToList:n=>`${n} added to the list`,
+  tAdded:n=>`${n} added to the pantry`, tProductDeleted:"Product deleted", tPlainDone:"Marked as used up", tToList:n=>`${n} added to the list`,
   editProduct:"Edit product", alreadyUsed:q=>`${q} is already planned in meals, so the total can't be lower.`,
   qtyTooLow:q=>`Quantity too low, ${q} is already planned in meals`,
   cantChangeKind:"This product is already used in meals, you can only switch to a unit of the same kind",
   tNameQty:"Enter a name and a quantity above zero", tSaved:"Saved",
   listTitle:"Shopping list", listSub:"Tick products off as they go in the cart.", phList:"e.g. Fish 300g", listAdd:"Product to buy",
-  autoCat:"Detect automatically",
-  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up, otherwise it asks you for food items when you finish shopping. Detergents, shampoo and similar go to Home on their own; tap the tag to change it.",
+  autoCat:"Auto",
+  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up. Otherwise it asks you when you finish shopping, but only for lunch and dinner food. Home and breakfast items are detected on their own; tap the tag to change it.",
   emptyList:"The list is empty. Add what you want to buy, then tick items off at the store.",
   toBuy:"To buy", inCart:"In the cart", endShop:n=>`Finish shopping · ${n} ${n===1?"item":"items"}`,
   check:"Tick", uncheck:"Untick", changeCat:"Change category of", removeFromList:"Remove from list", tListRemoved:"Removed from the list",
@@ -483,6 +511,8 @@ const STR = {
   carryNextHint:"What's left over is added to next week's budget. If you overspend, the difference is taken off. It starts from this week.",
   carryPiggyHint:"What's left over each week goes into the savings jar, which you'll find in Stats. If you overspend, the difference is taken off. It starts from this week.",
   goalName:"Goal (optional)", phGoal:"e.g. Holiday", goalAmount:"Target amount €", phGoalAmt:"e.g. 300", saveGoal:"Save goal", tGoalSaved:"Goal saved",
+  sBf:"Breakfast products", sBfD:"The app doesn't ask the quantity of these when you finish shopping and doesn't suggest them for lunch and dinner. Names that start with these words count too.",
+  phBfAdd:"e.g. Biscuits", noBf:"No products.", tBfAdded:"Breakfast list updated", tBfRemoved:"Removed from the breakfast list", bfExists:"Already on the list",
   sFavs:"Favourite dishes", sFavsD:"Create them from a meal sheet with “Save as a favourite dish”.", noFavs:"No favourite dishes yet.",
   removeFav:"Remove from favourites", tFavRemoved:"Dish removed from favourites",
   sData:"Data", sync:{local:"Saved on this device",synced:"Synced and saved",ro:"Read only, changes saved here",fail:"Sync failed, saved here"},
@@ -500,14 +530,26 @@ const STR = {
    ========================================================= */
 const LS_KEY = "spesa-pasti-v1";
 const LIST_KEYS = ["items","expenses","meals","list","extras","favs","piggyOut"];
-const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, carry:"off", carryFrom:null});
+const DEFAULT_BF = ["Arance","Latte","Burro d'arachidi","Marmellata"];
+const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, carry:"off", carryFrom:null, breakfast:[...DEFAULT_BF]});
 const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
   items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, settings:blankSettings()});
 function normalize(s){
   const o = Object.assign(blank(), s && typeof s==="object" ? s : {});
   o.settings = Object.assign(blankSettings(), (s && s.settings) || {});
   for(const k of LIST_KEYS) if(!Array.isArray(o[k])) o[k] = [];
+  if(!Array.isArray(o.settings.breakfast)) o.settings.breakfast = [...DEFAULT_BF];
+  // Una volta sola: i prodotti della colazione già in lista o in dispensa passano nella categoria Colazione.
+  if(!o.mig || !o.mig.bf1){ markBreakfast(o); o.mig = Object.assign({}, o.mig, {bf1:true}); }
   return o;
+}
+const normName = s => String(s || "").toLowerCase().replace(/[’‘`´]/g, "'").replace(/\bdi\s+(?=[aeiouàèéìòù])/g, "d'").replace(/\s+/g, " ").trim();
+function isBreakfastName(name, list){ const n = normName(name); return (list || []).some(k => { const kk = normName(k); return kk && (n===kk || n.startsWith(kk+" ")); }); }
+// Sposta in Colazione i prodotti con quei nomi: in lista sempre, in dispensa solo se non sono già usati nei pasti.
+function markBreakfast(o){
+  const usedIds = new Set(o.meals.flatMap(m => (m.ing || []).map(g => g.itemId)));
+  for(const l of o.list) if((l.cat || "food")==="food" && isBreakfastName(l.name, o.settings.breakfast)) l.cat = "breakfast";
+  for(const i of o.items) if((i.cat || "food")==="food" && !usedIds.has(i.id) && isBreakfastName(i.name, o.settings.breakfast)) i.cat = "breakfast";
 }
 
 let state = blank();
@@ -515,7 +557,7 @@ const ui = {tab:"week", prevTab:"week", weekOffset:0, showDone:false, pantryCat:
 let dbRef = null, dirty = false, writing = false, saveTimer = null, syncKey = "local";
 const T = () => STR[state.settings.lang] || STR.it;
 
-function loadLocal(){ try{ const raw = localStorage.getItem(LS_KEY); if(raw){ const s = JSON.parse(raw); if(s && s.v===1) state = normalize(s); } }catch(e){} }
+function loadLocal(){ try{ const raw = localStorage.getItem(LS_KEY); if(raw){ const s = JSON.parse(raw); if(s && s.v===1){ state = normalize(s); saveLocal(); } } }catch(e){} }
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function commit(){ saveLocal(); render(); if(dbRef){ dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(flush, 500); } }
 async function flush(){
@@ -584,14 +626,29 @@ function dispUnit(u){
 }
 const toDisp = (q, u) => { const d = dispUnit(u); return [q*F[u]/F[d], d]; };
 const fromDisp = (q, d, u) => q*F[d]/F[u];
-const qn = (q, u) => Math.round(toDisp(q,u)[0]*100)/100;
 const qs = (q, u) => { if(q==null) return ""; const [a,d] = toDisp(q,u); return qfmt(a)+" "+ul(d); };
+// Le porzioni dei pasti si indicano in g o ml (oz o fl oz) anche se il prodotto è in kg o litri.
+function mealUnit(u){
+  if(state.settings.units==="imperial") return DIM[u]==="m" ? "oz" : DIM[u]==="v" ? "fl oz" : "pz";
+  return DIM[u]==="m" ? "g" : DIM[u]==="v" ? "ml" : "pz";
+}
+const toMeal = (q, u) => q*F[u]/F[mealUnit(u)];
+const fromMeal = (v, u) => v*F[mealUnit(u)]/F[u];
+const roundMeal = (q, u) => Math.round(toMeal(q,u)*100)/100;
+const mqs = (q, u) => qfmt(toMeal(q,u))+" "+ul(mealUnit(u));
+// Porzione proposta: 100 g o 100 ml (3,5 oz), 1 pezzo; mai più di quanto resta.
+function defaultPortion(it, avail){
+  const mu = mealUnit(it.unit), v = mu==="pz" ? 1 : (mu==="g" || mu==="ml") ? 100 : 3.5;
+  return Math.min(fromMeal(v, it.unit), avail);
+}
 
 /* =========================================================
    4. LOGICA: dispensa, budget, riporti, categorie
    ========================================================= */
 const itemById = id => state.items.find(i => i.id===id);
+const catOf = i => i.cat==="home" ? "home" : i.cat==="breakfast" ? "breakfast" : "food";
 const isHome = i => i.cat==="home";
+const isFood = i => catOf(i)==="food";
 function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!==exceptMealId) for(const g of m.ing) if(g.itemId===id) s += +g.qty || 0; return s; }
 function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
 const spentShop = (a,b) => state.expenses.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
@@ -632,7 +689,7 @@ function piggy(){
 // Categoria casa per lista e dispensa.
 const HOME_WORDS = ["detersiv","sapone","shampoo","balsamo","bagnoschiuma","doccia schiuma","carta igienica","carta casa","scottex","fazzolett","tovaglioli","dentifricio","spazzolino","collutorio","deodorante","rasoi","lamette","assorbenti","cotton fioc","dischetti","spugn","sacchetti","sacchi","ammorbidente","candeggina","varechina","sgrassatore","anticalcare","lavastoviglie","pellicola","alluminio","carta forno","pile","lampadin","crema mani","crema viso","igienizzante","salviette","stracci","panni","mocio","profumatore","insetticida","detergente",
  "detergent","soap","conditioner","shower gel","toilet paper","kitchen roll","paper towel","tissue","napkin","toothpaste","toothbrush","mouthwash","deodorant","razor","sponge","bin bag","bleach","cling film","foil","baking paper","batteries","bulb","wipes","fabric softener","dishwasher","cleaner"];
-const guessCat = n => { n = n.toLowerCase(); return HOME_WORDS.some(w => n.includes(w)) ? "home" : "food"; };
+const guessCat = n => HOME_WORDS.some(w => n.toLowerCase().includes(w)) ? "home" : isBreakfastName(n, state.settings.breakfast) ? "breakfast" : "food";
 
 // Categorie degli extra, riconosciute dalle parole.
 const XCATS = ["food","fun","transport","shopping","subs","health","other"];
@@ -684,7 +741,7 @@ function saveFav(name, ing){
 function planFav(f){
   const rows = [], missing = [];
   for(const g of f.ing){
-    const cands = state.items.filter(i => !isHome(i) && sameName(i.name, g.name) && remaining(i)>0 && !rows.some(r => r.itemId===i.id));
+    const cands = state.items.filter(i => isFood(i) && sameName(i.name, g.name) && remaining(i)>0 && !rows.some(r => r.itemId===i.id));
     const it = cands.find(i => DIM[i.unit]===DIM[g.unit]) || cands[0];
     if(!it){ missing.push({name:g.name, qty:g.qty, unit:g.unit}); continue; }
     const rem = remaining(it);
@@ -746,7 +803,7 @@ const TAB_ICONS = {
    7. SCHERMATE
    ========================================================= */
 const pagehead = (h, p) => `<div class="pagehead"><h1>${h}</h1>${p ? `<p>${p}</p>` : ""}</div>`;
-const catChip = c => c==="home" ? `<span class="chip home">${T().homeShort}</span>` : `<span class="chip">${T().foodShort}</span>`;
+const catChip = c => c==="home" ? `<span class="chip home">${T().homeShort}</span>` : c==="breakfast" ? `<span class="chip coin">${T().bfShort}</span>` : `<span class="chip">${T().foodShort}</span>`;
 const slotLabel = s => s==="pranzo" ? T().lunch : T().dinner;
 
 function hero({title, spent, budget, brand, kind="f", note=""}){
@@ -767,7 +824,7 @@ function viewWeek_(){
   h += `<div class="weeknav"><button class="iconbtn" data-act="weekPrev" aria-label="${t.prevWeekA}">${I.back}</button>
     <div class="mid"><h2 class="num">${rangeLabel(ws)}</h2>${ui.weekOffset===0 ? `<span class="small muted">${tag}</span>` : `<button class="link" data-act="weekToday">${tag ? tag+" · " : ""}${t.backToday}</button>`}</div>
     <button class="iconbtn" data-act="weekNext" aria-label="${t.nextWeekA}">${I.fwd}</button></div>`;
-  if(!state.items.some(i => !isHome(i)) && !state.meals.length){
+  if(!state.items.some(isFood) && !state.meals.length){
     h += `<div class="empty" style="margin-bottom:12px"><b>${t.emptyPantryT}</b><span class="muted small">${t.emptyPantryD}</span>
       <div class="grid2"><button class="btn" data-act="tab" data-tab="pantry">${t.goPantry}</button><button class="btn ghost" data-act="sample">${t.tryExample}</button></div></div>`;
   }
@@ -779,7 +836,7 @@ function viewWeek_(){
       h += `<div class="slot"><div class="label">${sl}</div><div class="meals">`;
       if(!ms.length) h += `<div class="none">–</div>`;
       for(const m of ms){
-        const ing = m.ing.map(g => { const it = itemById(g.itemId); return it ? esc(it.name)+" "+qs(+g.qty, it.unit) : t.removedIng; }).join(" · ");
+        const ing = m.ing.map(g => { const it = itemById(g.itemId); return it ? esc(it.name)+" "+mqs(+g.qty, it.unit) : t.removedIng; }).join(" · ");
         const first = m.ing[0] && itemById(m.ing[0].itemId);
         const title = m.name || (first ? first.name : t.meal);
         h += `<div class="meal"><button class="mt-btn" data-act="editMeal" data-id="${m.id}"><b>${esc(title)}</b>${ing ? `<span>${ing}</span>` : ""}</button>
@@ -798,37 +855,37 @@ function viewList(){
   const row = i => `<div class="li ${i.checked ? "on" : ""}">
     <button class="ck" data-act="toggleCheck" data-id="${i.id}" aria-pressed="${!!i.checked}" aria-label="${i.checked ? t.uncheck : t.check} ${esc(i.name)}">${i.checked ? I.check : ""}</button>
     <div class="nm">${esc(i.name)}${i.qty ? `<span class="num">${qs(i.qty, i.unit)}</span>` : ""}</div>
-    <button data-act="flipCat" data-id="${i.id}" aria-label="${t.changeCat} ${esc(i.name)}">${catChip(i.cat||"food")}</button>
+    <button data-act="flipCat" data-id="${i.id}" aria-label="${t.changeCat} ${esc(i.name)}">${catChip(catOf(i))}</button>
     <button class="x" data-act="delListItem" data-id="${i.id}" aria-label="${t.removeFromList} ${esc(i.name)}">✕</button></div>`;
   let h = pagehead(t.listTitle, t.listSub) + `<form class="card form" id="listForm" autocomplete="off">
     <div class="row"><input id="lName" placeholder="${t.phList}" aria-label="${t.listAdd}"><button class="btn" type="submit" style="flex:none">${t.add}</button></div>
-    <div class="seg"><button type="button" data-act="listCat" data-cat="auto" aria-pressed="${!ui.listCat}">${t.autoCat}</button><button type="button" data-act="listCat" data-cat="home" aria-pressed="${ui.listCat==="home"}">${t.home}</button></div>
+    <div class="seg"><button type="button" data-act="listCat" data-cat="auto" aria-pressed="${!ui.listCat}">${t.autoCat}</button><button type="button" data-act="listCat" data-cat="breakfast" aria-pressed="${ui.listCat==="breakfast"}">${t.bfShort}</button><button type="button" data-act="listCat" data-cat="home" aria-pressed="${ui.listCat==="home"}">${t.homeShort}</button></div>
     <p class="hint">${t.listHint}</p></form>`;
   if(!state.list.length) h += `<div class="empty mt"><span class="muted small">${t.emptyList}</span></div>`;
   if(todo.length) h += `<div class="sechead"><h2>${t.toBuy} <span class="muted num">${todo.length}</span></h2></div>` + todo.map(row).join("");
-  if(done.length) h += `<div class="sechead"><h2>${t.inCart} <span class="muted num">${done.length}</span></h2></div>` + done.map(row).join("")
-    + `<div class="endbar"><button class="btn" data-act="endShop">${t.endShop(done.length)}</button></div>`;
+  if(done.length) h += `<div class="sechead"><h2>${t.inCart} <span class="muted num">${done.length}</span></h2></div>` + done.map(row).join("");
   return h;
 }
 
 /* ---- Dispensa ---- */
 function viewPantry(){
-  const t = T(), home = ui.pantryCat==="home";
+  const t = T(), cat = ui.pantryCat, plain = cat!=="food";
+  const segBtn = (c, l) => `<button data-act="pantryCat" data-cat="${c}" aria-pressed="${cat===c}">${l}</button>`;
   let h = pagehead(t.tabPantry, t.pantrySub);
-  h += `<div class="seg" style="margin-bottom:12px"><button data-act="pantryCat" data-cat="food" aria-pressed="${!home}">${t.food}</button><button data-act="pantryCat" data-cat="home" aria-pressed="${home}">${t.home}</button></div>
+  h += `<div class="seg" style="margin-bottom:12px">${segBtn("food", t.food)}${segBtn("breakfast", t.breakfast)}${segBtn("home", t.home)}</div>
   <form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
-    <div class="label">${home ? t.addHomeProduct : t.addProduct}</div>
-    <input id="itName" placeholder="${home ? t.phHome : t.phFood}" aria-label="${t.name}">
-    <div class="grid2"><input id="itQty" inputmode="decimal" placeholder="${home ? t.qtyOpt : t.qty}" aria-label="${t.qty}">
-      <select id="itUnit" aria-label="${t.unit}">${unitList().map(u => `<option value="${u}" ${u===(home ? "pz" : unitList()[0]) ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></div>
+    <div class="label">${cat==="home" ? t.addHomeProduct : cat==="breakfast" ? t.addBfProduct : t.addProduct}</div>
+    <input id="itName" placeholder="${cat==="home" ? t.phHome : cat==="breakfast" ? t.phBf : t.phFood}" aria-label="${t.name}">
+    <div class="grid2"><label class="field"><span>${plain ? t.qtyOpt : t.qty}</span><input id="itQty" inputmode="decimal" placeholder="${plain ? "" : t.phQty}"></label>
+      <label class="field"><span>${t.unit}</span><select id="itUnit">${unitList().map(u => `<option value="${u}" ${u===(plain ? "pz" : unitList()[0]) ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></label></div>
     <button class="btn" type="submit">${t.add}</button></form>`;
-  if(home){
-    const list = state.items.filter(isHome).sort((a,b) => b.added.localeCompare(a.added));
+  if(plain){
+    const list = state.items.filter(i => catOf(i)===cat).sort((a,b) => b.added.localeCompare(a.added));
     h += `<div class="sechead"><h2>${t.inHome} <span class="muted num">${list.length}</span></h2></div>`;
-    if(!list.length) h += `<div class="empty"><span class="muted small">${t.emptyHome}</span></div>`;
-    return h + `<div class="stack">${list.map(homeCard).join("")}</div>`;
+    if(!list.length) h += `<div class="empty"><span class="muted small">${cat==="home" ? t.emptyHome : t.emptyBf}</span></div>`;
+    return h + `<div class="stack">${list.map(plainCard).join("")}</div>`;
   }
-  const list = state.items.filter(i => !isHome(i)).sort((a,b) => (remaining(b)>0)-(remaining(a)>0) || b.added.localeCompare(a.added));
+  const list = state.items.filter(isFood).sort((a,b) => (remaining(b)>0)-(remaining(a)>0) || b.added.localeCompare(a.added));
   const avail = list.filter(i => remaining(i)>0), done = list.filter(i => remaining(i)<=0);
   h += `<div class="sechead"><h2>${t.available} <span class="muted num">${avail.length}</span></h2></div>`;
   if(!avail.length) h += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
@@ -846,7 +903,7 @@ function listBtn(it){
 function foodCard(it){
   const t = T(), r = remaining(it), pct = it.qty ? Math.min(100, r/it.qty*100) : 0;
   const uses = state.meals.filter(m => m.ing.some(g => g.itemId===it.id)).sort((a,b) => a.date.localeCompare(b.date) || a.slot.localeCompare(b.slot))
-    .map(m => { const q = m.ing.filter(g => g.itemId===it.id).reduce((s,g) => s + +g.qty, 0); return dayShort(parseIso(m.date))+" "+slotLabel(m.slot).toLowerCase()+" "+qs(q, it.unit); });
+    .map(m => { const q = m.ing.filter(g => g.itemId===it.id).reduce((s,g) => s + +g.qty, 0); return dayShort(parseIso(m.date))+" "+slotLabel(m.slot).toLowerCase()+" "+mqs(q, it.unit); });
   const [tq, tu] = toDisp(it.qty, it.unit);
   return `<div class="item ${r<=0 ? "done" : ""}">
     <div class="h"><b>${esc(it.name)}</b><span class="q num"><b>${qfmt(toDisp(r, it.unit)[0])}</b> <span class="muted">/ ${qfmt(tq)} ${ul(tu)}</span></span></div>
@@ -854,7 +911,7 @@ function foodCard(it){
     <div class="uses">${uses.length ? t.usedIn + uses.map(esc).join(" · ") : t.notUsed}</div>
     <div class="actions">${r<=0 ? listBtn(it) : ""}<button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.del}</button></div></div>`;
 }
-function homeCard(it){
+function plainCard(it){
   const t = T();
   return `<div class="item"><div class="h"><b>${esc(it.name)}</b><span class="q num muted">${qs(it.qty, it.unit)}</span></div>
     <div class="actions">${listBtn(it)}<button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.finishedBtn}</button></div></div>`;
@@ -1001,7 +1058,7 @@ function viewStats(){
   const added = state.items.filter(i => { const d = (i.added||"").slice(0,10); return d>=a && d<=b; });
   h += `<div class="sechead"><h2>${t.kitchen}</h2></div><div class="tiles num">
     <div class="tile"><span class="s">${t.mealsPlanned}</span><span class="v">${slots} <span class="s">${t.ofN(14)}</span></span></div>
-    <div class="tile"><span class="s">${t.inPantryNow}</span><span class="v">${state.items.filter(i => !isHome(i) && remaining(i)>0).length}</span></div>
+    <div class="tile"><span class="s">${t.inPantryNow}</span><span class="v">${state.items.filter(i => isFood(i) && remaining(i)>0).length}</span></div>
     <div class="tile"><span class="s">${t.boughtFood}</span><span class="v">${added.filter(i => !isHome(i)).length}</span></div>
     <div class="tile"><span class="s">${t.boughtHome}</span><span class="v">${added.filter(isHome).length}</span></div>
     <div class="tile wide"><span class="s">${t.favCount}</span><span class="v">${state.favs.length}</span></div></div>`;
@@ -1032,8 +1089,11 @@ function viewSettings(){
       <form class="form" id="goalForm" data-enter="blur" autocomplete="off"><div class="grid2"><label class="field"><span>${t.goalName}</span><input id="gName" placeholder="${t.phGoal}" value="${esc(g.name||"")}"></label>
       <label class="field"><span>${t.goalAmount}</span><input id="gAmt" inputmode="decimal" placeholder="${t.phGoalAmt}" value="${g.amount ? moneyIn(g.amount) : ""}"></label></div>
       <button class="btn ghost" type="submit">${t.saveGoal}</button></form>` : ""}</div>`;
+  h += `<div class="card mt" style="display:grid;gap:10px"><div class="t" style="font-weight:700">${t.sBf}</div><p class="hint">${t.sBfD}</p>
+    <div class="tags">${s.breakfast.map((b,i) => `<span class="tag">${esc(b)}<button type="button" class="x" data-act="delBf" data-i="${i}" aria-label="${t.del} ${esc(b)}">✕</button></span>`).join("") || `<p class="small muted">${t.noBf}</p>`}</div>
+    <form class="row" id="bfForm" autocomplete="off"><input id="bfIn" placeholder="${t.phBfAdd}" aria-label="${t.sBf}"><button class="btn" type="submit" style="flex:none">${t.add}</button></form></div>`;
   h += `<div class="card mt"><div class="t" style="font-weight:700">${t.sFavs}</div><p class="hint" style="margin:4px 0 6px">${t.sFavsD}</p>
-    ${state.favs.length ? state.favs.map(f => `<div class="favrow"><div class="nm"><b>${esc(f.name)}</b><span>${f.ing.map(g => esc(g.name)+" "+qs(g.qty, g.unit)).join(" · ")}</span></div><button class="x" data-act="delFav" data-id="${f.id}" aria-label="${t.removeFav} ${esc(f.name)}">✕</button></div>`).join("") : `<p class="small muted">${t.noFavs}</p>`}</div>`;
+    ${state.favs.length ? state.favs.map(f => `<div class="favrow"><div class="nm"><b>${esc(f.name)}</b><span>${f.ing.map(g => esc(g.name)+" "+mqs(g.qty, g.unit)).join(" · ")}</span></div><button class="x" data-act="delFav" data-id="${f.id}" aria-label="${t.removeFav} ${esc(f.name)}">✕</button></div>`).join("") : `<p class="small muted">${t.noFavs}</p>`}</div>`;
   h += `<div class="card mt" style="display:grid;gap:10px">
     <div class="row" style="justify-content:space-between"><span style="font-weight:700">${t.sData}</span><span class="small muted" id="sync">${t.sync[syncKey]}</span></div>
     <p class="hint">${t.bkHint}</p>
@@ -1058,16 +1118,21 @@ function render(){
     : `<header class="appbar"><div class="in">${LOGO}<div class="brandname">Budget<em>Bite</em></div><button class="iconbtn" data-act="tab" data-tab="settings" aria-label="${t.settings}">${I.sliders}</button></div></header>`;
   $("#tabs").setAttribute("aria-label", "BudgetBite");
   $("#tabs").innerHTML = `<div class="in" role="tablist">${TABS.map(([k,l]) => `<button role="tab" data-act="tab" data-tab="${k}" aria-selected="${ui.tab===k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${TAB_ICONS[k]}</svg>${t[l]}</button>`).join("")}</div>`;
-  const y = window.scrollY;
+  const sc = $("#scroller"), y = sc.scrollTop;
   $("#app").innerHTML = (VIEWS[ui.tab] || viewWeek_)();
-  window.scrollTo(0, y);
+  sc.scrollTop = y;
+  // "Fine spesa" sta in una barra sopra le tab, fuori dalla lista: non copre più i prodotti.
+  const dock = $("#dock"), nCart = state.list.filter(i => i.checked).length, showDock = ui.tab==="list" && nCart>0;
+  dock.hidden = !showDock;
+  dock.innerHTML = showDock ? `<button class="btn" data-act="endShop">${t.endShop(nCart)}</button>` : "";
+  document.documentElement.style.setProperty("--toastB", ($("#tabs").offsetHeight + (showDock ? dock.offsetHeight : 0) + 12) + "px");
   bindForms();
   $$("input:not([type=date]):not([type=checkbox])").forEach(i => i.setAttribute("enterkeyhint", i.form && i.form.dataset.enter==="blur" ? "done" : "enter"));
 }
 function go(tab){
   if(tab==="settings" && ui.tab!=="settings") ui.prevTab = ui.tab;
   ui.tab = tab; ui.restore = false; ui.confirmClear = false;
-  closeSheet(); render(); window.scrollTo(0,0);
+  closeSheet(); render(); $("#scroller").scrollTop = 0;
   if(tab!=="settings") try{ localStorage.setItem(LS_KEY+"-tab", tab); }catch(e){}
 }
 
@@ -1080,12 +1145,12 @@ function bindForms(){
   on("#listForm", () => {
     const p = parseEntry($("#lName").value); if(!p.name){ toast(t.tWriteName); return; }
     state.list.push({id:uid(), name:p.name, qty:p.qty, unit:p.unit, checked:false, cat:ui.listCat || guessCat(p.name)}); commit();
-    setTimeout(() => { const i = $("#lName"); if(i) i.focus(); }, 0);
+    const i = $("#lName"); if(i) i.focus();
   });
   on("#itemForm", () => {
-    const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value, home = ui.pantryCat==="home";
-    if(!name || (!home && !(q>0))){ toast(t.tNameQty); return; }
-    state.items.push({id:uid(), name, qty:q>0 ? q : null, unit, cat:home ? "home" : "food", added:new Date().toISOString()});
+    const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value, cat = ui.pantryCat;
+    if(!name || (cat==="food" && !(q>0))){ toast(t.tNameQty); return; }
+    state.items.push({id:uid(), name, qty:q>0 ? q : null, unit, cat, added:new Date().toISOString()});
     blurActive(); commit(); toast(t.tAdded(name));
   });
   on("#expForm", () => {
@@ -1097,11 +1162,17 @@ function bindForms(){
     const r = parseExtra($("#xIn").value); if(!r){ toast(t.tExtraNeedAmt); return; }
     state.extras.push({id:uid(), amount:r.amount, note:r.note, date:$("#xDate").value || iso(new Date()), xcat:guessXcat(r.note)});
     commit(); toast(t.tExtraDone(r.note, eur(r.amount)));
-    setTimeout(() => { const i = $("#xIn"); if(i) i.focus(); }, 0);
+    const i = $("#xIn"); if(i) i.focus();
   });
   on("#budgetForm", () => {
     const v = ["#bW","#bM","#xW","#xM"].map(s => num($(s).value)); if(v.some(x => !(x>0))){ toast(t.tBudget); return; }
     [state.weekly, state.monthly, state.extraWeekly, state.extraMonthly] = v.map(r2); blurActive(); commit(); toast(t.tBudgetSaved);
+  });
+  on("#bfForm", () => {
+    const v = cap($("#bfIn").value.trim()); if(!v) return;
+    if(state.settings.breakfast.some(b => normName(b)===normName(v))){ toast(t.bfExists); return; }
+    state.settings.breakfast.push(v); markBreakfast(state); commit(); toast(t.tBfAdded);
+    const i = $("#bfIn"); if(i) i.focus();
   });
   on("#goalForm", () => {
     const amt = num($("#gAmt").value), name = $("#gName").value.trim();
@@ -1129,7 +1200,7 @@ function openMeal(date, slot, mealId){
   if(meal){ date = meal.date; slot = meal.slot; }
   const own = id => meal ? meal.ing.filter(g => g.itemId===id).reduce((s,g) => s + +g.qty, 0) : 0;
   const avail = it => remaining(it, meal && meal.id);
-  const pool = state.items.filter(i => !isHome(i) && (avail(i)>0 || own(i.id)>0));
+  const pool = state.items.filter(i => isFood(i) && (avail(i)>0 || own(i.id)>0)).sort((a,b) => a.name.localeCompare(b.name, t.locale));
   const fav = meal && findFav(meal.name);
   const favChips = !meal && state.favs.length ? `<div class="field"><span>${t.favorites}</span><div class="favs">${state.favs.map(f => `<button type="button" class="favchip" data-fav="${f.id}" aria-pressed="false">★ ${esc(f.name)}</button>`).join("")}</div></div>` : "";
   const el = sheet(`<div class="head"><div class="label">${slotLabel(slot)} · ${dayLong(parseIso(date))}</div><h2>${meal ? t.mealEditT : t.mealAddT}</h2></div>
@@ -1137,58 +1208,76 @@ function openMeal(date, slot, mealId){
     <label class="field"><span>${t.mealName}</span><input id="mName" placeholder="${t.phMeal}" value="${meal ? esc(meal.name) : ""}"></label>
     <div class="label">${t.ingFromPantry}</div>
     <div class="stack" id="ingRows"></div>
-    <p class="hint" id="ingEmpty" hidden></p>
-    <button type="button" class="link" id="addRow" style="justify-self:start">${t.anotherIng}</button>
+    <p class="hint" id="ingEmpty" hidden>${t.pantryEmptyHint}</p>
+    <button type="button" class="addingr" id="addRow">${I.plus}<span>${t.addIng}</span></button>
     <div id="missBox"></div>
     <label class="checkrow"><input type="checkbox" id="mFav"><span>${fav ? t.updateFav : t.saveFav}</span></label>
     <p class="hint">${t.mealHint}</p>
     ${meal ? `<button type="button" class="btn danger" id="mDel">${t.deleteMeal}</button>` : ""}
     ${sheetButtons(meal ? t.save : t.add)}`, {form:true, blurEnter:true});
   const rows = $("#ingRows", el);
-  const options = sel => pool.map(i => `<option value="${i.id}" ${i.id===sel ? "selected" : ""}>${esc(i.name)}</option>`).join("");
+  const rowItems = except => $$(".ingr", rows).filter(d => d!==except).map(d => d.dataset.item);
   function refresh(){
-    const empty = $("#ingEmpty", el);
-    empty.hidden = rows.children.length>0;
-    empty.textContent = pool.length ? t.noIngYet : t.pantryEmptyHint;
-    $("#addRow", el).hidden = !pool.length;
+    $("#ingEmpty", el).hidden = pool.length>0;
+    $("#addRow", el).hidden = !pool.length || rowItems().length >= pool.length;
   }
-  function addRow(itemId, qtyItemUnit){
-    if(!pool.length) return;
-    const k = uid(), div = document.createElement("div");
+  // Elenco degli ingredienti: toccandone uno si passa subito alla quantità.
+  function openPicker(current, exceptRow, onPick){
+    const taken = rowItems(exceptRow), opts = pool.filter(i => !taken.includes(i.id));
+    const wrap = document.createElement("div");
+    wrap.className = "pscrim";
+    wrap.innerHTML = `<div class="picker" role="dialog" aria-modal="true" aria-label="${t.pickT}">
+      <div class="phead"><h2>${t.pickT}</h2><button type="button" class="x" data-close aria-label="${t.close}">✕</button></div>
+      <div class="plist">${opts.length ? opts.map(i => `<button type="button" class="pitem ${i.id===current ? "on" : ""}" data-id="${i.id}"><b>${esc(i.name)}</b><span class="num">${t.left} ${mqs(avail(i), i.unit)}</span></button>`).join("") : `<p class="hint" style="padding:12px 0">${t.pickEmpty}</p>`}</div></div>`;
+    $("#sheetRoot").appendChild(wrap);
+    wrap.addEventListener("click", e => {
+      if(e.target===wrap || e.target.closest("[data-close]")){ wrap.remove(); return; }
+      const b = e.target.closest(".pitem"); if(!b) return;
+      wrap.remove(); onPick(b.dataset.id);
+    });
+  }
+  function focusQty(q){ q.focus(); try{ q.setSelectionRange(0, q.value.length); }catch(e){} }
+  function setRow(div, itemId, qItem, focus){
+    const it = itemById(itemId), av = avail(it);
+    div.dataset.item = itemId;
+    $(".pickbtn b", div).textContent = it.name;
+    $(".ulab", div).textContent = t.qtyIn(ul(mealUnit(it.unit)));
+    $(".ingleft", div).textContent = t.inPantryLeft(mqs(av, it.unit), roundMeal(av, it.unit));
+    const q = $("input", div);
+    q.value = qfmt(roundMeal(qItem!=null ? qItem : defaultPortion(it, av), it.unit));
+    if(focus) focusQty(q);
+  }
+  function addRow(itemId, qItem, focus){
+    const div = document.createElement("div");
     div.className = "ingr";
-    div.innerHTML = `<label class="field"><span>${t.ingredient}</span><select id="i-${k}">${options(itemId)}</select></label>
-      <label class="field"><span id="u-${k}"></span><input id="q-${k}" inputmode="decimal" enterkeyhint="done"></label>
-      <button type="button" class="x" aria-label="${t.removeIng}">✕</button><span class="hint ingleft" id="r-${k}"></span>`;
+    div.innerHTML = `<div class="field"><span>${t.ingredient}</span><button type="button" class="pickbtn"><b></b>${I.down}</button></div>
+      <label class="field"><span class="ulab"></span><input inputmode="decimal" enterkeyhint="done" aria-label="${t.qty}"></label>
+      <button type="button" class="x rm" aria-label="${t.removeIng}">✕</button><span class="hint ingleft"></span>`;
     rows.appendChild(div);
-    const sel = div.querySelector("select"), q = div.querySelector("input"), lab = div.querySelector(`#u-${k}`), leftEl = div.querySelector(`#r-${k}`);
-    if(!itemId){
-      const taken = $$("select", rows).filter(s => s!==sel).map(s => s.value);
-      const free = pool.find(i => !taken.includes(i.id) && avail(i)>0); if(free) sel.value = free.id;
-    }
-    const setQty = qi => { const it = itemById(sel.value); lab.textContent = t.qtyIn(ul(dispUnit(it.unit))); leftEl.textContent = t.inPantryLeft(qs(avail(it), it.unit), qn(avail(it), it.unit)); q.value = qfmt(toDisp(qi!=null ? qi : avail(it), it.unit)[0]); };
-    setQty(qtyItemUnit);
-    sel.onchange = () => setQty(null);
-    div.querySelector("button").onclick = () => { div.remove(); refresh(); };
+    const q = $("input", div);
+    q.addEventListener("focus", () => setTimeout(() => { try{ q.setSelectionRange(0, q.value.length); }catch(e){} }, 0));
+    $(".pickbtn", div).onclick = () => openPicker(div.dataset.item, div, id => setRow(div, id, null, true));
+    $(".rm", div).onclick = () => { div.remove(); refresh(); };
+    setRow(div, itemId, qItem, focus);
     refresh();
   }
   function showMissing(missing){
     const box = $("#missBox", el);
     if(!missing.length){ box.innerHTML = ""; return; }
-    box.innerHTML = `<div class="warnbox"><b>${t.missingT}</b><ul>${missing.map(m => `<li>${esc(m.short ? t.missShort(m.name, qs(m.have, m.unit), qn(m.have, m.unit)) : t.missNone(m.name))}</li>`).join("")}</ul>
+    box.innerHTML = `<div class="warnbox"><b>${t.missingT}</b><ul>${missing.map(m => `<li>${esc(m.short ? t.missShort(m.name, mqs(m.have, m.unit), roundMeal(m.have, m.unit)) : t.missNone(m.name))}</li>`).join("")}</ul>
       <button type="button" class="btn sm ghost" id="missToList" style="justify-self:start">${t.toList}</button></div>`;
     $("#missToList", el).onclick = () => {
       let n = 0; for(const m of missing) if(addToList(m.name, "food", m.short ? null : m.qty, m.short ? null : m.unit)) n++;
       commit(); toast(n ? t.tAddedToList(n) : t.tAllInList); showMissing([]);
     };
   }
-  if(meal){ for(const g of meal.ing) if(pool.some(i => i.id===g.itemId)) addRow(g.itemId, +g.qty); }
-  else addRow();
+  if(meal) for(const g of meal.ing) if(pool.some(i => i.id===g.itemId)) addRow(g.itemId, +g.qty, false);
   refresh();
-  $("#addRow", el).onclick = () => addRow();
+  $("#addRow", el).onclick = () => openPicker(null, null, id => addRow(id, null, true));
   $$("[data-fav]", el).forEach(b => b.onclick = () => {
     const f = state.favs.find(x => x.id===b.dataset.fav); if(!f) return;
     $("#mName", el).value = f.name; rows.innerHTML = "";
-    const plan = planFav(f); plan.rows.forEach(r => addRow(r.itemId, r.qty)); refresh(); showMissing(plan.missing);
+    const plan = planFav(f); plan.rows.forEach(r => addRow(r.itemId, r.qty, false)); refresh(); showMissing(plan.missing);
     $$("[data-fav]", el).forEach(x => x.setAttribute("aria-pressed", String(x===b)));
     $("#mFav", el).nextElementSibling.textContent = t.updateFav;
   });
@@ -1197,14 +1286,15 @@ function openMeal(date, slot, mealId){
     e.preventDefault();
     const name = $("#mName", el).value.trim(), wantFav = $("#mFav", el).checked, ing = [], tot = {};
     for(const div of rows.children){
-      const it = itemById(div.querySelector("select").value), qd = num(div.querySelector("input").value);
-      if(!(qd>0)){ toast(t.tEachQty); return; }
-      const q = fromDisp(qd, dispUnit(it.unit), it.unit);
+      const it = itemById(div.dataset.item), v = num($("input", div).value);
+      if(!it) continue;
+      if(!(v>0)){ toast(t.tEachQty); return; }
+      const q = fromMeal(v, it.unit);
       tot[it.id] = (tot[it.id]||0) + q; ing.push({itemId:it.id, qty:q});
     }
     if(!name && !ing.length){ toast(t.mealNeedsSomething); return; }
     if(wantFav && !name){ toast(t.favNeedsName); return; }
-    for(const id in tot){ const it = itemById(id), av = avail(it); if(tot[id] > av + Math.max(1e-6, av*0.002)){ toast(t.onlyLeft(it.name, qs(av, it.unit), qn(av, it.unit))); return; } }
+    for(const id in tot){ const it = itemById(id), av = avail(it); if(tot[id] > av + Math.max(1e-6, av*0.002)){ toast(t.onlyLeft(it.name, mqs(av, it.unit), roundMeal(av, it.unit))); return; } }
     for(const g of ing){ const av = avail(itemById(g.itemId)); if(tot[g.itemId] > av) g.qty *= av/tot[g.itemId]; g.qty = Math.round(g.qty*10000)/10000; }
     if(meal){ meal.name = name; meal.ing = ing; } else state.meals.push({id:uid(), date, slot, name, ing});
     if(wantFav) saveFav(name, ing);
@@ -1220,14 +1310,14 @@ function openItem(id){
   const opts = unitList().includes(du) ? unitList() : [du, ...unitList()];
   const el = sheet(`<h2>${t.editProduct}</h2>
     <label class="field"><span>${t.name}</span><input id="eName" value="${esc(it.name)}"></label>
-    <div class="grid2"><label class="field"><span>${isHome(it) ? t.qtyOpt : t.qty}</span><input id="eQty" inputmode="decimal" value="${dq!=null ? qfmt(dq) : ""}"></label>
+    <div class="grid2"><label class="field"><span>${isFood(it) ? t.qty : t.qtyOpt}</span><input id="eQty" inputmode="decimal" value="${dq!=null ? qfmt(dq) : ""}"></label>
       <label class="field"><span>${t.unit}</span><select id="eUnit">${opts.map(x => `<option value="${x}" ${x===du ? "selected" : ""}>${ul(x)}</option>`).join("")}</select></label></div>
     ${u ? `<p class="hint">${t.alreadyUsed(qs(u, it.unit))}</p>` : ""}
     ${sheetButtons(t.save)}`, {form:true, blurEnter:true});
   el.onsubmit = e => {
     e.preventDefault();
     const name = cap($("#eName", el).value.trim()), q = num($("#eQty", el).value), nu = $("#eUnit", el).value;
-    if(!name || (!isHome(it) && !(q>0))){ toast(t.tNameQty); return; }
+    if(!name || (isFood(it) && !(q>0))){ toast(t.tNameQty); return; }
     const unchanged = nu===du && dq!=null && Math.abs(q - Math.round(dq*100)/100) < 0.005;
     if(!unchanged){
       if(u>0 && DIM[nu]!==DIM[it.unit]){ toast(t.cantChangeKind); return; }
@@ -1297,7 +1387,7 @@ function openPiggyOut(){
 function openEndShop(){
   const t = T(), sel = state.list.filter(i => i.checked).map(i => ({...i}));
   if(!sel.length) return;
-  const missing = sel.filter(i => !(i.qty>0) && (i.cat||"food")==="food");
+  const missing = sel.filter(i => !(i.qty>0) && catOf(i)==="food");
   const total = missing.length + 1;
   let step = -1;
   const bar = cur => `<div class="steps">${Array.from({length:total}, (_,k) => `<i class="${k<=cur ? "on" : ""}"></i>`).join("")}</div>`;
@@ -1305,7 +1395,7 @@ function openEndShop(){
     let body;
     if(step===-1){
       body = `<div class="head"><div class="label">${t.endLabel}</div><h2>${t.endT(sel.length)}</h2></div>
-        <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${i.qty>0 ? qs(i.qty, i.unit) : i.cat==="home" ? t.home : t.qtyToSet}</span></li>`).join("")}</ul>
+        <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${i.qty>0 ? qs(i.qty, i.unit) : catOf(i)==="home" ? t.home : catOf(i)==="breakfast" ? t.breakfast : t.qtyToSet}</span></li>`).join("")}</ul>
         ${missing.length ? `<p class="hint">${t.willAsk(missing.length)}</p>` : ""}
         ${sheetButtons(t.confirm)}`;
     } else if(step < missing.length){
@@ -1333,7 +1423,7 @@ function openEndShop(){
     };
   }
   function finish(amt){
-    for(const i of sel){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz", i.cat || "food"); }
+    for(const i of sel){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz", catOf(i)); }
     const ids = new Set(sel.map(i => i.id));
     state.list = state.list.filter(i => !ids.has(i.id));
     if(amt>0) state.expenses.push({id:uid(), amount:r2(amt), date:iso(new Date()), note:t.fromList});
@@ -1342,8 +1432,12 @@ function openEndShop(){
   show();
 }
 function addToPantry(name, qty, unit, cat){
-  const ex = state.items.find(i => sameName(i.name, name) && (i.cat||"food")===cat && DIM[i.unit]===DIM[unit]);
-  if(ex){ if(qty>0) ex.qty = Math.round(((ex.qty||0) + qty*F[unit]/F[ex.unit])*1000)/1000; }
+  // Colazione e casa: un solo prodotto per nome, anche se le unità non coincidono.
+  const ex = state.items.find(i => sameName(i.name, name) && catOf(i)===cat && (cat!=="food" || DIM[i.unit]===DIM[unit]));
+  if(ex){
+    if(qty>0 && ex.qty==null){ ex.qty = qty; ex.unit = unit; }
+    else if(qty>0 && DIM[ex.unit]===DIM[unit]) ex.qty = Math.round((ex.qty + qty*F[unit]/F[ex.unit])*1000)/1000;
+  }
   else state.items.push({id:uid(), name, qty:qty>0 ? qty : null, unit, cat, added:new Date().toISOString()});
 }
 
@@ -1380,17 +1474,17 @@ const A = {
   editItem: el => openItem(el.dataset.id),
   delItem: el => {
     const id = el.dataset.id, it = itemById(id); if(!it) return;
-    withUndo(isHome(it) ? T().tHomeDone : T().tProductDeleted, () => {
+    withUndo(isFood(it) ? T().tProductDeleted : T().tPlainDone, () => {
       state.items = state.items.filter(i => i.id!==id);
       state.meals.forEach(m => { m.ing = m.ing.filter(g => g.itemId!==id); });
       state.meals = state.meals.filter(m => m.ing.length || m.name);
     });
   },
-  itemToList: el => { const it = itemById(el.dataset.id); if(it && addToList(it.name, it.cat||"food")){ commit(); toast(T().tToList(it.name)); } },
+  itemToList: el => { const it = itemById(el.dataset.id); if(it && addToList(it.name, catOf(it))){ commit(); toast(T().tToList(it.name)); } },
   toggleCheck: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.checked = !it.checked; commit(); } },
-  flipCat: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.cat = it.cat==="home" ? "food" : "home"; commit(); } },
+  flipCat: el => { const it = state.list.find(i => i.id===el.dataset.id), order = ["food","breakfast","home"]; if(it){ it.cat = order[(order.indexOf(catOf(it))+1) % 3]; commit(); } },
   delListItem: el => withUndo(T().tListRemoved, () => { state.list = state.list.filter(i => i.id!==el.dataset.id); }),
-  listCat: el => { ui.listCat = el.dataset.cat==="home" ? "home" : null; $$("[data-act=listCat]").forEach(b => b.setAttribute("aria-pressed", String(b===el))); },
+  listCat: el => { ui.listCat = el.dataset.cat==="auto" ? null : el.dataset.cat; $$("[data-act=listCat]").forEach(b => b.setAttribute("aria-pressed", String(b===el))); },
   endShop: () => openEndShop(),
   editExpense: el => openExpense(el.dataset.id),
   editExtra: el => openExtra(el.dataset.id),
@@ -1406,6 +1500,7 @@ const A = {
     if(k==="weekStart") ui.weekOffset = 0;
     applyTheme(); commit();
   },
+  delBf: el => withUndo(T().tBfRemoved, () => { state.settings.breakfast.splice(Number(el.dataset.i), 1); }),
   delFav: el => withUndo(T().tFavRemoved, () => { state.favs = state.favs.filter(f => f.id!==el.dataset.id); }),
   backupCopy: () => {
     const t = T(), txt = JSON.stringify(Object.assign({app:"BudgetBite"}, state));
@@ -1428,7 +1523,7 @@ const A = {
     ui.confirmClear = false;
     withUndo(T().tCleared, () => { const b = blank(); for(const k of ["settings","weekly","monthly","extraWeekly","extraMonthly","goal"]) b[k] = state[k]; state = b; });
   },
-  kbDone: () => { blurActive(); hideKb(); }
+  kbDone: () => { blurActive(); hideKb(); setTimeout(resetViewport, 80); }
 };
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]");
@@ -1449,8 +1544,19 @@ document.addEventListener("focusin", e => {
   if(!isTyping(e.target)) return;
   clearTimeout(kbTimer);
   $("#kbRoot").innerHTML = `<button type="button" class="kbdone" data-act="kbDone">${I.down}${T().kbDone}</button>`;
+  placeKb();
 });
-document.addEventListener("focusout", () => { kbTimer = setTimeout(() => { if(!isTyping(document.activeElement)) hideKb(); }, 150); });
+document.addEventListener("focusout", () => { kbTimer = setTimeout(() => { if(!isTyping(document.activeElement)){ hideKb(); resetViewport(); } }, 150); });
+// Su iPhone, dopo che la tastiera si chiude la pagina a volte resta spostata: la riportiamo a posto.
+function resetViewport(){ if(!isTyping(document.activeElement) && (window.scrollY || document.documentElement.scrollTop)) window.scrollTo(0, 0); }
+function placeKb(){
+  const b = $(".kbdone"), vv = window.visualViewport; if(!b || !vv) return;
+  b.style.top = vv.offsetTop > 0 ? (vv.offsetTop + 12) + "px" : "";
+}
+if(window.visualViewport){
+  visualViewport.addEventListener("resize", () => { placeKb(); setTimeout(resetViewport, 80); });
+  visualViewport.addEventListener("scroll", placeKb);
+}
 
 /* =========================================================
    11. AVVIO
