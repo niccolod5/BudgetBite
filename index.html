@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="BudgetBite">
@@ -54,7 +54,7 @@ html{background:var(--surface)}
    della barra di stato e in fondo resta una banda vuota (WebKit 301108). Una pagina alta quanto lo schermo la riporta a tutta altezza. */
 @media (display-mode: standalone){ html{height:auto;min-height:min(100lvh, calc(100% + env(safe-area-inset-top,0px)))} }
 body{color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
-button,input,select,label,textarea{touch-action:manipulation}
+*{touch-action:manipulation}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em}
 h1{font-size:1.85rem;font-weight:800;line-height:1.1}
 h2{font-size:1.15rem;font-weight:800;line-height:1.2}
@@ -314,6 +314,9 @@ input::placeholder{color:var(--muted);opacity:.8}
 /* =========================================================
    1. TESTI (italiano / inglese)
    ========================================================= */
+// "al 14", "all'8", "al 1°": la preposizione giusta davanti al giorno.
+const itAl = d => d===8 || d===11 ? `all'${d}` : d===1 ? "al 1°" : `al ${d}`;
+const itDal = d => d===8 || d===11 ? `dall'${d}` : d===1 ? "dal 1°" : `dal ${d}`;
 const STR = {
  it: {
   locale:"it-IT",
@@ -370,15 +373,15 @@ const STR = {
   tQtyPos:"Inserisci una quantità maggiore di zero",
   tShopDone:(n,a)=>`${n===1?"1 prodotto aggiunto":n+" prodotti aggiunti"} alla dispensa${a?", "+a+" sottratti":""}`,
   fromList:"Spesa da lista",
-  shopSub:"Il budget della spesa, alimentari e casa insieme.", leftWeek:"Restano questa settimana", leftMonth:m=>`Restano a ${m}`,
+  shopSub:"Il budget della spesa, alimentari e casa insieme.", leftWeek:"Restano questa settimana", leftMonth:m=>`Restano a ${m}`, leftUntil:(d,m)=>`Restano fino ${itAl(d)} ${m}`,
   spentOf:(a,b)=>`spesi ${a}<br>su ${b}`, carryPlus:a=>`Comprende ${a} avanzati nelle settimane precedenti`, carryMinus:a=>`Tolti ${a} sforati nelle settimane precedenti`,
   logExpense:"Registra una spesa", phAmount:"es. 23,40", note:"Dove o cosa", phNote:"es. Conad (facoltativo)", subtract:"Sottrai dal budget",
-  expensesOf:m=>`Spese di ${m}`, noExpenses:"Nessuna spesa registrata questo mese.", seeStats:"Vedi l'analisi", editBudgets:"Modifica i budget",
+  expensesOf:m=>`Spese di ${m}`, expensesRange:(d1,m1,d2,m2)=>`Spese ${itDal(d1)} ${m1} ${itAl(d2)} ${m2}`, noExpenses:"Nessuna spesa registrata in questo mese.", seeStats:"Vedi l'analisi", editBudgets:"Modifica i budget",
   editExpenseT:"Modifica la spesa", deleteExpense:"Elimina la spesa", tAmount:"Inserisci un importo valido", tSubtracted:a=>`${a} sottratti dal budget`,
   tExpenseSaved:"Spesa aggiornata", tExpenseDeleted:"Spesa eliminata", shopEntry:"Spesa",
   extraSub:"Soldi per tutto il resto, fuori dalla spesa.", extraWhat:"Cosa e quanto", phExtra:"es. gelato 3,5€", deduct:"Scala",
   extraHint:"Scrivi cosa e quanto, come “cena venerdì 25€” o “cinema 9”. La categoria viene riconosciuta da sola, tocca una voce per cambiarla.",
-  extrasOf:m=>`Extra di ${m}`, noExtras:"Ancora niente questo mese.", extraDefault:"Spesa extra",
+  extrasOf:m=>`Extra di ${m}`, extrasRange:(d1,m1,d2,m2)=>`Extra ${itDal(d1)} ${m1} ${itAl(d2)} ${m2}`, noExtras:"Ancora niente questo mese.", extraDefault:"Spesa extra",
   tExtraNeedAmt:"Scrivi anche l'importo, es. gelato 3,5€", tExtraDone:(n,a)=>`${n} · ${a} scalati`,
   editExtraT:"Modifica l'extra", description:"Descrizione", category:"Categoria", tExtraSaved:"Extra aggiornato", tExtraDeleted:"Extra eliminato", deleteExtra:"Elimina l'extra",
   xcat:{food:"Cibo e bar",fun:"Uscite e svago",transport:"Trasporti",shopping:"Shopping e regali",subs:"Abbonamenti",health:"Salute e sport",other:"Altro"},
@@ -395,6 +398,7 @@ const STR = {
   boughtHome:"Prodotti per la casa comprati", inPantryNow:"Disponibili in dispensa", favCount:"Piatti preferiti",
   piggyT:"Salvadanaio", piggyWeeks:w=>w===0?"Il primo avanzo arriva a fine settimana.":`Messi da parte in ${w===1?"1 settimana":w+" settimane"}, al netto dei prelievi.`,
   goalProgress:(p,n,a)=>n?`${p}% dell'obiettivo ${n} (${a})`:`${p}% dell'obiettivo di ${a}`,
+  emptyPiggy:"Svuota il salvadanaio", tPiggyEmptied:a=>`Salvadanaio svuotato, tolti ${a}`, piggyEmptyNote:"Salvadanaio svuotato",
   useFromPiggy:"Usa dal salvadanaio", piggyOutT:"Usa dal salvadanaio", phPiggyNote:"es. Weekend fuori (facoltativo)", tPiggyOut:a=>`${a} presi dal salvadanaio`,
   withdrawals:"Prelievi", tWithdrawalDeleted:"Prelievo eliminato", piggyOutDefault:"Prelievo",
   carryT:"Riporto della settimana", carryNow:(s,e)=>`Questa settimana hai ${s} sulla spesa e ${e} sugli extra rispetto al budget base.`,
@@ -403,7 +407,8 @@ const STR = {
   sLang:"Lingua", sUnits:"Unità di misura", sUnitsD:"Le quantità già inserite vengono convertite solo a schermo.", metric:"g · kg · ml · lt", imperial:"oz · lb · fl oz",
   sWeek:"La settimana inizia", monday:"Lunedì", sunday:"Domenica",
   sBudgets:"Budget", sShopBudget:"Spesa", sExtraBudget:"Extra", weekly:"Settimanale €", monthly:"Mensile €", saveBudgets:"Salva i budget",
-  monthOnly:m=>`Solo per ${m}`, monthOnlyD:"Se questo mese hai un budget diverso dal solito, scrivilo qui. Lascia vuoto per usare quello mensile normale.", shopMonth:"Spesa €", extraMonth:"Extra €",
+  monthOnly:"Budget del mese in corso", monthOnlyD:(d1,m1,d2,m2)=>`Vale ${itDal(d1)} ${m1} ${itAl(d2)} ${m2}. Se questo mese hai un budget diverso dal solito, scrivilo qui. Lascia vuoto per usare quello normale.`, shopMonth:"Spesa €", extraMonth:"Extra €",
+  sMonthStart:"Il mese di budget inizia il giorno", sMonthStartD:"Per esempio il giorno in cui arriva lo stipendio. Il budget mensile vale da quel giorno fino al giorno prima del mese dopo.",
   monthNote:a=>`Budget solo per questo mese, di solito è ${a}`,
   tBudget:"I budget devono essere maggiori di zero", tBudgetSaved:"Budget salvati",
   sCarry:"Avanzo settimanale", sCarryD:"Cosa fare con quello che resta a fine settimana nei budget di spesa ed extra.",
@@ -478,15 +483,15 @@ const STR = {
   tQtyPos:"Enter a quantity above zero",
   tShopDone:(n,a)=>`${n===1?"1 item":n+" items"} added to the pantry${a?", "+a+" subtracted":""}`,
   fromList:"Shopping from list",
-  shopSub:"Your grocery budget, food and household together.", leftWeek:"Left this week", leftMonth:m=>`Left in ${m}`,
+  shopSub:"Your grocery budget, food and household together.", leftWeek:"Left this week", leftMonth:m=>`Left in ${m}`, leftUntil:(d,m)=>`Left until ${d} ${m}`,
   spentOf:(a,b)=>`spent ${a}<br>of ${b}`, carryPlus:a=>`Includes ${a} left over from previous weeks`, carryMinus:a=>`Minus ${a} overspent in previous weeks`,
   logExpense:"Log an expense", phAmount:"e.g. 23.40", note:"Where or what", phNote:"e.g. Tesco (optional)", subtract:"Subtract from budget",
-  expensesOf:m=>`Expenses in ${m}`, noExpenses:"No expenses logged this month.", seeStats:"See stats", editBudgets:"Change budgets",
+  expensesOf:m=>`Expenses in ${m}`, expensesRange:(d1,m1,d2,m2)=>`Expenses ${d1} ${m1} – ${d2} ${m2}`, noExpenses:"No expenses logged this month.", seeStats:"See stats", editBudgets:"Change budgets",
   editExpenseT:"Edit expense", deleteExpense:"Delete expense", tAmount:"Enter a valid amount", tSubtracted:a=>`${a} subtracted from budget`,
   tExpenseSaved:"Expense updated", tExpenseDeleted:"Expense deleted", shopEntry:"Groceries",
   extraSub:"Money for everything else, outside groceries.", extraWhat:"What and how much", phExtra:"e.g. ice cream 3.5€", deduct:"Deduct",
   extraHint:"Type what and how much, like “friday dinner 25€” or “cinema 9”. The category is detected automatically; tap an entry to change it.",
-  extrasOf:m=>`Extras in ${m}`, noExtras:"Nothing yet this month.", extraDefault:"Extra expense",
+  extrasOf:m=>`Extras in ${m}`, extrasRange:(d1,m1,d2,m2)=>`Extras ${d1} ${m1} – ${d2} ${m2}`, noExtras:"Nothing yet this month.", extraDefault:"Extra expense",
   tExtraNeedAmt:"Add the amount too, e.g. ice cream 3.5€", tExtraDone:(n,a)=>`${n} · ${a} deducted`,
   editExtraT:"Edit extra", description:"Description", category:"Category", tExtraSaved:"Extra updated", tExtraDeleted:"Extra deleted", deleteExtra:"Delete extra",
   xcat:{food:"Eating out",fun:"Going out & fun",transport:"Transport",shopping:"Shopping & gifts",subs:"Subscriptions",health:"Health & sport",other:"Other"},
@@ -503,6 +508,7 @@ const STR = {
   boughtHome:"Household items bought", inPantryNow:"Available in pantry", favCount:"Favourite dishes",
   piggyT:"Savings jar", piggyWeeks:w=>w===0?"The first leftover arrives at the end of the week.":`Saved over ${w===1?"1 week":w+" weeks"}, net of withdrawals.`,
   goalProgress:(p,n,a)=>n?`${p}% of the ${n} goal (${a})`:`${p}% of the ${a} goal`,
+  emptyPiggy:"Empty the savings jar", tPiggyEmptied:a=>`Savings jar emptied, ${a} taken out`, piggyEmptyNote:"Savings jar emptied",
   useFromPiggy:"Use from savings jar", piggyOutT:"Use from savings jar", phPiggyNote:"e.g. Weekend away (optional)", tPiggyOut:a=>`${a} taken from the savings jar`,
   withdrawals:"Withdrawals", tWithdrawalDeleted:"Withdrawal deleted", piggyOutDefault:"Withdrawal",
   carryT:"This week's carry-over", carryNow:(s,e)=>`This week you have ${s} on groceries and ${e} on extras compared to the base budget.`,
@@ -511,7 +517,8 @@ const STR = {
   sLang:"Language", sUnits:"Units", sUnitsD:"Quantities you already entered are converted on screen only.", metric:"g · kg · ml · lt", imperial:"oz · lb · fl oz",
   sWeek:"Week starts on", monday:"Monday", sunday:"Sunday",
   sBudgets:"Budgets", sShopBudget:"Groceries", sExtraBudget:"Extras", weekly:"Weekly €", monthly:"Monthly €", saveBudgets:"Save budgets",
-  monthOnly:m=>`Only for ${m}`, monthOnlyD:"If this month's budget is different from usual, enter it here. Leave empty to use the normal monthly budget.", shopMonth:"Groceries €", extraMonth:"Extras €",
+  monthOnly:"Budget for the current month", monthOnlyD:(d1,m1,d2,m2)=>`From ${d1} ${m1} to ${d2} ${m2}. If this month's budget is different from usual, enter it here. Leave empty to use the normal one.`, shopMonth:"Groceries €", extraMonth:"Extras €",
+  sMonthStart:"Budget month starts on day", sMonthStartD:"For example the day your salary arrives. The monthly budget runs from that day to the day before it next month.",
   monthNote:a=>`Budget for this month only, usually ${a}`,
   tBudget:"Budgets must be above zero", tBudgetSaved:"Budgets saved",
   sCarry:"Weekly leftover", sCarryD:"What to do with what's left at the end of the week in the grocery and extras budgets.",
@@ -539,7 +546,7 @@ const STR = {
 const LS_KEY = "spesa-pasti-v1";
 const LIST_KEYS = ["items","expenses","meals","list","extras","favs","piggyOut"];
 const DEFAULT_BF = ["Arance","Latte","Burro d'arachidi","Marmellata"];
-const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, carry:"off", carryFrom:null, breakfast:[...DEFAULT_BF]});
+const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, monthStart:1, carry:"off", carryFrom:null, breakfast:[...DEFAULT_BF]});
 const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
   items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, monthBudgets:{}, settings:blankSettings()});
 function normalize(s){
@@ -552,6 +559,9 @@ function normalize(s){
   o.mig = Object.assign({}, o.mig);
   if(!o.mig.bf1){ markBreakfast(o); o.mig.bf1 = true; }
   // Ottobre 2026: budget mensile ridotto (spesa 240 €, extra 234 €), modificabile in Opzioni.
+  // Il mese di budget parte dal 14 (arrivo dello stipendio), modificabile in Opzioni.
+  if(!o.mig.ms14){ o.settings.monthStart = 14; o.mig.ms14 = true; }
+  o.settings.monthStart = Math.min(28, Math.max(1, Math.round(+o.settings.monthStart) || 1));
   if(!o.mig.oct26){ if(!o.monthBudgets["2026-10"]) o.monthBudgets["2026-10"] = {shop:240, extra:234}; o.mig.oct26 = true; }
   return o;
 }
@@ -622,14 +632,25 @@ const mon3 = d => T().months[d.getMonth()].slice(0,3);
 const dayLong = d => T().days[d.getDay()]+" "+d.getDate()+" "+T().months[d.getMonth()];
 const dayShort = d => T().days[d.getDay()].slice(0,3)+" "+d.getDate();
 function rangeLabel(ws){ const we = addDays(ws,6); return ws.getDate()+(ws.getMonth()!==we.getMonth() ? " "+mon3(ws) : "")+"–"+we.getDate()+" "+mon3(we); }
-const monthKey = (d = new Date()) => d.getFullYear()+"-"+pad(d.getMonth()+1);
+// Mese di budget: dal giorno scelto (es. il 14) fino al giorno prima dello stesso giorno del mese dopo.
+function period(d = new Date()){
+  const ms = state.settings.monthStart || 1;
+  const start = d.getDate()>=ms ? new Date(d.getFullYear(), d.getMonth(), ms) : new Date(d.getFullYear(), d.getMonth()-1, ms);
+  const end = new Date(start.getFullYear(), start.getMonth()+1, ms-1);
+  const custom = ms!==1;
+  return {start, end, a:iso(start), b:iso(end), custom, key:start.getFullYear()+"-"+pad(start.getMonth()+1),
+    name: custom ? `${start.getDate()} ${mon3(start)} – ${end.getDate()} ${mon3(end)}` : T().months[start.getMonth()],
+    parts:[start.getDate(), mon3(start), end.getDate(), mon3(end)]};
+}
+const monthKey = (d = new Date()) => period(d).key;
+const leftMonthTitle = (p = period()) => p.custom ? T().leftUntil(p.end.getDate(), mon3(p.end)) : T().leftMonth(p.name);
 // Budget mensile: quello impostato solo per quel mese, se c'è, altrimenti quello normale.
 function monthBudget(kind, d = new Date()){
   const o = state.monthBudgets[monthKey(d)], v = o && o[kind];
   return v>0 ? v : (kind==="shop" ? state.monthly : state.extraMonthly);
 }
 const hasMonthBudget = (kind, d = new Date()) => { const o = state.monthBudgets[monthKey(d)]; return !!(o && o[kind]>0); };
-function monthBounds(d = new Date()){ return [iso(new Date(d.getFullYear(), d.getMonth(), 1)), iso(new Date(d.getFullYear(), d.getMonth()+1, 0)), T().months[d.getMonth()]]; }
+function monthBounds(d = new Date()){ const p = period(d); return [p.a, p.b, p.name]; }
 const sameName = (a,b) => a.trim().toLowerCase() === b.trim().toLowerCase();
 const boughtAt = i => i.bought || i.added || "";
 const cap = s => s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
@@ -962,7 +983,7 @@ function viewShop(){
   const c = weekBudget("shop", ws), [a,b] = weekRange(ws);
   let h = pagehead(t.tabShop, t.shopSub) + `<div class="stack">`
     + hero({title:t.leftWeek, spent:spentShop(a,b), budget:c.eff, brand:true, note:carryNote(c)})
-    + hero({title:t.leftMonth(mName), spent:spentShop(ma,mb), budget:monthBudget("shop"), note:hasMonthBudget("shop") ? t.monthNote(eur(state.monthly)) : ""}) + `</div>`;
+    + hero({title:leftMonthTitle(), spent:spentShop(ma,mb), budget:monthBudget("shop"), note:hasMonthBudget("shop") ? t.monthNote(eur(state.monthly)) : ""}) + `</div>`;
   h += `<form class="card form mt" id="expForm" data-enter="blur" autocomplete="off">
     <div class="label">${t.logExpense}</div>
     <div class="grid2"><label class="field"><span>${t.amount}</span><input id="exAmt" inputmode="decimal" placeholder="${t.phAmount}"></label>
@@ -970,7 +991,8 @@ function viewShop(){
     <label class="field"><span>${t.note}</span><input id="exNote" placeholder="${t.phNote}"></label>
     <button class="btn" type="submit">${t.subtract}</button></form>`;
   const exps = state.expenses.filter(e => e.date>=ma && e.date<=mb).sort((x,y) => y.date.localeCompare(x.date));
-  h += `<div class="sechead"><h2>${t.expensesOf(mName)}</h2><button class="link small" data-act="tab" data-tab="stats">${t.seeStats}</button></div>`;
+  const pp = period();
+  h += `<div class="sechead"><h2>${pp.custom ? t.expensesRange(...pp.parts) : t.expensesOf(mName)}</h2><button class="link small" data-act="tab" data-tab="stats">${t.seeStats}</button></div>`;
   if(!exps.length) h += `<p class="muted small">${t.noExpenses}</p>`;
   for(const e of exps) h += `<button class="rowbtn" data-act="editExpense" data-id="${e.id}"><div class="l"><b>${esc(e.note || t.shopEntry)}</b><span class="small muted">${dayLong(parseIso(e.date))}</span></div><span class="amt num">${eur(e.amount)}</span><span class="chev">${I.chev}</span></button>`;
   h += `<p class="mt"><button class="link small" data-act="tab" data-tab="settings">${t.editBudgets}</button></p>`;
@@ -983,14 +1005,15 @@ function viewExtra(){
   const c = weekBudget("extra", ws), [a,b] = weekRange(ws);
   let h = pagehead(t.tabExtra, t.extraSub) + `<div class="stack">`
     + hero({title:t.leftWeek, spent:spentExtra(a,b), budget:c.eff, brand:true, kind:"e", note:carryNote(c)})
-    + hero({title:t.leftMonth(mName), spent:spentExtra(ma,mb), budget:monthBudget("extra"), kind:"e", note:hasMonthBudget("extra") ? t.monthNote(eur(state.extraMonthly)) : ""}) + `</div>`;
+    + hero({title:leftMonthTitle(), spent:spentExtra(ma,mb), budget:monthBudget("extra"), kind:"e", note:hasMonthBudget("extra") ? t.monthNote(eur(state.extraMonthly)) : ""}) + `</div>`;
   h += `<form class="card form mt" id="extraForm" autocomplete="off">
     <label class="field"><span>${t.extraWhat}</span><input id="xIn" placeholder="${t.phExtra}"></label>
     <div class="grid2" style="align-items:end"><label class="field"><span>${t.date}</span><input id="xDate" type="date" value="${iso(now)}"></label>
       <button class="btn" type="submit">${t.deduct}</button></div>
     <p class="hint">${t.extraHint}</p></form>`;
   const list = state.extras.filter(e => e.date>=ma && e.date<=mb).sort((x,y) => y.date.localeCompare(x.date));
-  h += `<div class="sechead"><h2>${t.extrasOf(mName)}</h2><button class="link small" data-act="tab" data-tab="stats">${t.seeStats}</button></div>`;
+  const pp = period();
+  h += `<div class="sechead"><h2>${pp.custom ? t.extrasRange(...pp.parts) : t.extrasOf(mName)}</h2><button class="link small" data-act="tab" data-tab="stats">${t.seeStats}</button></div>`;
   if(!list.length) h += `<p class="muted small">${t.noExtras}</p>`;
   for(const e of list) h += `<button class="rowbtn" data-act="editExtra" data-id="${e.id}"><div class="l"><b>${esc(e.note)}</b><span class="small muted">${dayLong(parseIso(e.date))} · ${t.xcat[xcatOf(e)]}</span></div><span class="amt num">${eur(e.amount)}</span><span class="chev">${I.chev}</span></button>`;
   h += `<p class="mt"><button class="link small" data-act="tab" data-tab="settings">${t.editBudgets}</button></p>`;
@@ -1005,8 +1028,8 @@ function viewStats(){
     const ws = sow(now); [a,b] = weekRange(ws); days = 7; elapsed = Math.round((today-ws)/864e5)+1;
     shopB = weekBudget("shop", ws).eff; extraB = weekBudget("extra", ws).eff; label = rangeLabel(ws);
   } else {
-    let mName; [a,b,mName] = monthBounds(); days = parseIso(b).getDate(); elapsed = now.getDate();
-    shopB = monthBudget("shop"); extraB = monthBudget("extra"); label = mName;
+    const p = period(now); a = p.a; b = p.b; days = Math.round((p.end-p.start)/864e5)+1; elapsed = Math.round((today-p.start)/864e5)+1;
+    shopB = monthBudget("shop"); extraB = monthBudget("extra"); label = p.name;
   }
   const shop = spentShop(a,b), extra = spentExtra(a,b), tot = shop+extra, totB = shopB+extraB, left = totB-tot;
   const scale = Math.max(totB, tot) || 1, rem = days-elapsed, proj = x => x/elapsed*days;
@@ -1038,7 +1061,7 @@ function viewStats(){
     h += `<div class="sechead"><h2>${t.piggyT}</h2></div><div class="card piggy" style="display:grid;gap:12px">
       <div class="big num ${pg.total<0 ? "badc" : ""}">${eur(pg.total)}</div><p class="small muted">${t.piggyWeeks(pg.weeks)}</p>
       ${gp!=null ? `<div class="sbar"><i class="e" style="width:${gp}%"></i></div><p class="small">${esc(t.goalProgress(gp, g.name, eur(g.amount)))}</p>` : ""}
-      <button class="btn ghost" data-act="piggyOut">${t.useFromPiggy}</button>
+      <div class="grid2"><button class="btn ghost" data-act="piggyOut">${t.useFromPiggy}</button><button class="btn danger" data-act="emptyPiggy" ${pg.total>0 ? "" : "disabled"}>${t.emptyPiggy}</button></div>
       ${outs.length ? `<div><div class="label" style="margin-bottom:4px">${t.withdrawals}</div>${outs.map(o => `<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:4px 0"><span class="small" style="flex:1">${esc(o.note || t.piggyOutDefault)} <span class="muted">· ${dayShort(parseIso(o.date))}</span></span><b class="num small">${eur(o.amount)}</b><button class="x" data-act="delPiggyOut" data-id="${o.id}" aria-label="${t.del}">✕</button></div>`).join("")}</div>` : ""}</div>`;
   } else if(st.carry==="next"){
     const cs = weekBudget("shop", sow(now)).carry, ce = weekBudget("extra", sow(now)).carry, sg = x => (x>0 ? "+" : "") + eur(x);
@@ -1064,10 +1087,10 @@ function viewStats(){
   // Ultimi 6 mesi
   const rows = [];
   for(let k = 5; k >= 0; k--){
-    const d = new Date(now.getFullYear(), now.getMonth()-k, 1), [x,y] = monthBounds(d);
+    const ps = period(now).start, d = new Date(ps.getFullYear(), ps.getMonth()-k, ps.getDate()), [x,y] = monthBounds(d);
     if(y < firstDate) continue;
     const s = spentShop(x,y), e = spentExtra(x,y), diff = monthBudget("shop", d) + monthBudget("extra", d) - s - e;
-    rows.push(`<tr><td>${mon3(d)} ${String(d.getFullYear()).slice(2)}</td><td>${eur(s)}</td><td>${eur(e)}</td><td class="${diff<0 ? "badc" : "good"}"><b>${diff>=0 ? "+" : ""}${eur(diff)}</b></td></tr>`);
+    rows.push(`<tr><td>${state.settings.monthStart!==1 ? d.getDate()+" " : ""}${mon3(d)} ${String(d.getFullYear()).slice(2)}</td><td>${eur(s)}</td><td>${eur(e)}</td><td class="${diff<0 ? "badc" : "good"}"><b>${diff>=0 ? "+" : ""}${eur(diff)}</b></td></tr>`);
   }
   h += `<div class="sechead"><h2>${t.last6}</h2></div><div class="card tablewrap"><table class="mtab num"><thead><tr><th>${t.colMonth}</th><th>${t.colShop}</th><th>${t.colExtra}</th><th>${t.colDiff}</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
 
@@ -1113,14 +1136,16 @@ function viewSettings(){
     <div class="opt"><div class="t">${t.sAppearance}</div><p class="hint">${t.sAppearanceD}</p>${seg("theme", [["system",t.themeSystem],["light",t.themeLight],["dark",t.themeDark]])}</div>
     <div class="opt"><div class="t">${t.sLang}</div>${seg("lang", [["it","Italiano"],["en","English"]])}</div>
     <div class="opt"><div class="t">${t.sUnits}</div><p class="hint">${t.sUnitsD}</p>${seg("units", [["metric",t.metric],["imperial",t.imperial]])}</div>
-    <div class="opt"><div class="t">${t.sWeek}</div>${seg("weekStart", [[1,t.monday],[0,t.sunday]])}</div></div>`;
+    <div class="opt"><div class="t">${t.sWeek}</div>${seg("weekStart", [[1,t.monday],[0,t.sunday]])}</div>
+    <div class="opt"><div class="t">${t.sMonthStart}</div><p class="hint">${t.sMonthStartD}</p>
+      <select id="msSel" aria-label="${t.sMonthStart}" style="max-width:120px">${Array.from({length:28}, (_,i) => `<option value="${i+1}" ${s.monthStart===i+1 ? "selected" : ""}>${i+1}</option>`).join("")}</select></div></div>`;
   h += `<form class="card form mt" id="budgetForm" data-enter="blur" autocomplete="off">
     <div class="t" style="font-weight:700">${t.sBudgets}</div>
     <div class="label">${t.sShopBudget}</div>
     <div class="grid2"><label class="field"><span>${t.weekly}</span><input id="bW" inputmode="decimal" value="${moneyIn(state.weekly)}"></label><label class="field"><span>${t.monthly}</span><input id="bM" inputmode="decimal" value="${moneyIn(state.monthly)}"></label></div>
     <div class="label">${t.sExtraBudget}</div>
     <div class="grid2"><label class="field"><span>${t.weekly}</span><input id="xW" inputmode="decimal" value="${moneyIn(state.extraWeekly)}"></label><label class="field"><span>${t.monthly}</span><input id="xM" inputmode="decimal" value="${moneyIn(state.extraMonthly)}"></label></div>
-    <div class="label" style="margin-top:6px">${t.monthOnly(monthBounds()[2])}</div><p class="hint">${t.monthOnlyD}</p>
+    <div class="label" style="margin-top:6px">${t.monthOnly}</div><p class="hint">${t.monthOnlyD(...period().parts)}</p>
     <div class="grid2"><label class="field"><span>${t.shopMonth}</span><input id="oS" inputmode="decimal" placeholder="${moneyIn(state.monthly)}" value="${hasMonthBudget("shop") ? moneyIn(monthBudget("shop")) : ""}"></label>
       <label class="field"><span>${t.extraMonth}</span><input id="oX" inputmode="decimal" placeholder="${moneyIn(state.extraMonthly)}" value="${hasMonthBudget("extra") ? moneyIn(monthBudget("extra")) : ""}"></label></div>
     <button class="btn" type="submit">${t.saveBudgets}</button></form>`;
@@ -1220,6 +1245,8 @@ function bindForms(){
     state.settings.breakfast.push(v); markBreakfast(state); commit(); toast(t.tBfAdded);
     const i = $("#bfIn"); if(i) i.focus();
   });
+  const msSel = $("#msSel");
+  if(msSel) msSel.onchange = () => { state.settings.monthStart = Number(msSel.value); commit(); };
   on("#goalForm", () => {
     const amt = num($("#gAmt").value), name = $("#gName").value.trim();
     state.goal = amt>0 ? {name, amount:r2(amt)} : (name ? {name, amount:0} : null); blurActive(); commit(); toast(t.tGoalSaved);
@@ -1536,6 +1563,10 @@ const A = {
   editExtra: el => openExtra(el.dataset.id),
   statsPeriod: el => { ui.statsPeriod = el.dataset.p; render(); },
   piggyOut: () => openPiggyOut(),
+  emptyPiggy: () => {
+    const pg = piggy(); if(!pg || !(pg.total>0)) return;
+    withUndo(T().tPiggyEmptied(eur(pg.total)), () => { state.piggyOut.push({id:uid(), amount:pg.total, date:iso(new Date()), note:T().piggyEmptyNote}); });
+  },
   delPiggyOut: el => withUndo(T().tWithdrawalDeleted, () => { state.piggyOut = state.piggyOut.filter(o => o.id!==el.dataset.id); }),
   setOpt: el => {
     const k = el.dataset.key; let v = el.dataset.val;
@@ -1603,6 +1634,11 @@ if(window.visualViewport){
   visualViewport.addEventListener("resize", () => { placeKb(); setTimeout(resetViewport, 80); });
   visualViewport.addEventListener("scroll", placeKb);
 }
+
+// Niente zoom: né con due dita né con il doppio tocco (il doppio tocco è già bloccato dal CSS).
+["gesturestart","gesturechange","gestureend"].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), {passive:false}));
+document.addEventListener("touchmove", e => { if(e.touches && e.touches.length>1) e.preventDefault(); }, {passive:false});
+document.addEventListener("dblclick", e => e.preventDefault(), {passive:false});
 
 /* =========================================================
    11. AVVIO
