@@ -322,6 +322,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 <script>
 (() => {
 "use strict";
+const APP_VERSION = "1.5.2";
 
 /* =========================================================
    1. TESTI (italiano / inglese)
@@ -1206,7 +1207,7 @@ function viewSettings(){
     <button class="btn ghost" data-act="sample">${t.loadExample}</button>
     ${ui.confirmClear ? `<p class="small">${t.clearQ}</p><div class="grid2"><button class="btn ghost" data-act="clearCancel">${t.no}</button><button class="btn danger" data-act="clearAll">${t.yesClear}</button></div>`
       : `<button class="btn danger" data-act="clearAsk">${t.clearAll}</button>`}</div>
-  <p class="small muted" style="text-align:center;margin-top:20px">BudgetBite</p>`;
+  <p class="small muted num" style="text-align:center;margin-top:20px">BudgetBite ${APP_VERSION}</p>`;
   return h;
 }
 
@@ -1789,8 +1790,20 @@ connect();
 </script>
 
 <script>
+// Aggiornamenti: il service worker viene controllato a ogni apertura e quando l'app torna in primo piano.
+// Quando arriva una versione nuova, la pagina si ricarica una volta da sola.
 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  let hadController = !!navigator.serviceWorker.controller, reloaded = false, reg = null;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController) { hadController = true; return; }
+    if (reloaded) return;
+    reloaded = true; location.reload();
+  });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" })
+      .then(r => { reg = r; return r.update(); }).catch(() => {});
+  });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && reg) reg.update().catch(() => {}); });
 }
 </script>
 </body>
