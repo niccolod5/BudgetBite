@@ -203,6 +203,10 @@ input::placeholder{color:var(--muted);opacity:.8}
 .ck{width:40px;height:40px;border-radius:12px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:var(--on-accent);background:var(--surface)}
 .ck svg{width:20px;height:20px}
 .li.on .ck{background:var(--accent);border-color:var(--accent)}
+.ck.up{color:var(--accent);border-style:dashed}
+.li.later .nm{color:var(--muted)}
+.laterform{display:flex;gap:8px;margin-top:10px}
+.laterform .btn{flex:none}
 
 /* ---------- money rows ---------- */
 .rowbtn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 2px;border-bottom:1px solid var(--line);min-height:60px}
@@ -373,6 +377,9 @@ const STR = {
   check:"Spunta", uncheck:"Togli la spunta a", changeCat:"Cambia categoria di", removeFromList:"Togli dalla lista", tListRemoved:"Prodotto tolto dalla lista",
   editListT:"Modifica il prodotto", editListItem:"Modifica", reorder:"Tieni premuto e trascina per spostare", category:"Categoria", noUnit:"—", qtyListHint:"Lascia vuota la quantità se vuoi che te la chieda a fine spesa.",
   tListSaved:"Prodotto aggiornato", tReordered:"Ordine aggiornato", reorderHint:"Trascina ≡ per cambiare l'ordine.",
+  forLater:"Per dopo", forLaterHint:"Cose da comprare in una spesa successiva. Non contano per la prossima spesa, e con ↑ le sposti in “Da prendere”.",
+  phLater:"Aggiungi per dopo", when:"Quando", nextShop:"Prossima spesa", moveToNext:"Sposta nella prossima spesa",
+  tMovedNext:n=>`${n} è nella prossima spesa`, tMovedLater:n=>`${n} è in “Per dopo”`, emptyNext:"Per la prossima spesa non hai ancora niente in lista.",
   tWriteName:"Scrivi il nome del prodotto",
   endLabel:"Fine spesa", endT:n=>`Aggiungo ${n===1?"1 prodotto":n+" prodotti"} alla dispensa?`, qtyToSet:"quantità da indicare",
   willAsk:n=>n===1?"Per un prodotto ti chiederò la quantità o il peso.":`Per ${n} prodotti ti chiederò la quantità o il peso, uno alla volta.`,
@@ -485,6 +492,9 @@ const STR = {
   check:"Tick", uncheck:"Untick", changeCat:"Change category of", removeFromList:"Remove from list", tListRemoved:"Removed from the list",
   editListT:"Edit product", editListItem:"Edit", reorder:"Press and drag to move", category:"Category", noUnit:"—", qtyListHint:"Leave the quantity empty if you want to be asked when you finish shopping.",
   tListSaved:"Product updated", tReordered:"Order updated", reorderHint:"Drag ≡ to change the order.",
+  forLater:"For later", forLaterHint:"Things to buy on a later trip. They don't count for the next shopping, and ↑ moves them to “To buy”.",
+  phLater:"Add for later", when:"When", nextShop:"Next shopping", moveToNext:"Move to next shopping",
+  tMovedNext:n=>`${n} is on the next shopping`, tMovedLater:n=>`${n} is in “For later”`, emptyNext:"Nothing on the list for the next shopping yet.",
   tWriteName:"Type the product name",
   endLabel:"Finish shopping", endT:n=>`Add ${n===1?"1 item":n+" items"} to the pantry?`, qtyToSet:"quantity needed",
   willAsk:n=>n===1?"I'll ask you the quantity or weight of one item.":`I'll ask you the quantity or weight of ${n} items, one at a time.`,
@@ -705,9 +715,13 @@ function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!
 function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
 const spentShop = (a,b) => state.expenses.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
 const spentExtra = (a,b) => state.extras.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
-const inList = name => state.list.some(l => !l.checked && nameScore(l.name, name)>=2);
+const findInList = name => state.list.find(l => !l.checked && nameScore(l.name, name)>=2);
+const inList = name => !!findInList(name);
+// Sposta una voce in fondo alla lista (in fondo al suo gruppo), così chi passa da "Per dopo" alla prossima spesa va in coda.
+function moveToEnd(it){ state.list = state.list.filter(i => i!==it); state.list.push(it); }
 function addToList(name, cat, qty, unit){
-  if(inList(name)) return false;
+  const ex = findInList(name);
+  if(ex){ if(ex.later){ ex.later = false; moveToEnd(ex); return true; } return false; }
   state.list.push({id:uid(), name, qty:qty>0?qty:null, unit:qty>0?unit:null, checked:false, cat:cat||"food"});
   return true;
 }
@@ -862,6 +876,7 @@ const ico = (path, w=2) => `<svg viewBox="0 0 24 24" fill="none" stroke="current
 const I = {
   back: ico('<path d="M15 5l-7 7 7 7"/>', 2.2), fwd: ico('<path d="M9 5l7 7-7 7"/>', 2.2), chev: ico('<path d="M9 6l6 6-6 6"/>', 2),
   plus: ico('<path d="M12 5v14M5 12h14"/>', 2.4), check: ico('<path d="M5 12.5l4.5 4.5L19 7.5"/>', 3), down: ico('<path d="M6 9l6 6 6-6"/>', 2.2),
+  up: ico('<path d="M12 19V6M6.5 11.5L12 6l5.5 5.5"/>', 2.4),
   grip: ico('<path d="M5 8h14M5 12h14M5 16h14"/>', 2),
   sliders: ico('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/>', 1.9)
 };
@@ -926,9 +941,10 @@ function viewWeek_(){
 
 /* ---- Lista ---- */
 function viewList(){
-  const t = T(), todo = state.list.filter(i => !i.checked), done = state.list.filter(i => i.checked);
-  const row = (i, grip) => `<div class="li ${i.checked ? "on" : ""}" data-id="${i.id}">
-    <button class="ck" data-act="toggleCheck" data-id="${i.id}" aria-pressed="${!!i.checked}" aria-label="${i.checked ? t.uncheck : t.check} ${esc(i.name)}">${i.checked ? I.check : ""}</button>
+  const t = T(), todo = state.list.filter(i => !i.checked && !i.later), done = state.list.filter(i => i.checked), later = state.list.filter(i => !i.checked && i.later);
+  const row = (i, grip) => `<div class="li ${i.checked ? "on" : ""} ${i.later ? "later" : ""}" data-id="${i.id}">
+    ${i.later ? `<button class="ck up" data-act="toNext" data-id="${i.id}" aria-label="${t.moveToNext}: ${esc(i.name)}">${I.up}</button>`
+      : `<button class="ck" data-act="toggleCheck" data-id="${i.id}" aria-pressed="${!!i.checked}" aria-label="${i.checked ? t.uncheck : t.check} ${esc(i.name)}">${i.checked ? I.check : ""}</button>`}
     <button class="nm" data-act="editListItem" data-id="${i.id}" aria-label="${t.editListItem} ${esc(i.name)}">${esc(i.name)}${i.qty ? `<span class="num muted small">${qs(i.qty, i.unit)}</span>` : ""}</button>
     <button data-act="flipCat" data-id="${i.id}" aria-label="${t.changeCat} ${esc(i.name)}">${catChip(catOf(i))}</button>
     <button class="x" data-act="delListItem" data-id="${i.id}" aria-label="${t.removeFromList} ${esc(i.name)}">✕</button>
@@ -937,10 +953,13 @@ function viewList(){
     <div class="row"><input id="lName" placeholder="${t.phList}" aria-label="${t.listAdd}"><button class="btn" type="submit" style="flex:none">${t.add}</button></div>
     <div class="seg"><button type="button" data-act="listCat" data-cat="auto" aria-pressed="${!ui.listCat}">${t.autoCat}</button><button type="button" data-act="listCat" data-cat="breakfast" aria-pressed="${ui.listCat==="breakfast"}">${t.bfShort}</button><button type="button" data-act="listCat" data-cat="home" aria-pressed="${ui.listCat==="home"}">${t.homeShort}</button></div>
     <p class="hint">${t.listHint}</p></form>`;
-  if(!state.list.length) h += `<div class="empty mt"><span class="muted small">${t.emptyList}</span></div>`;
+  if(!todo.length && !done.length) h += `<div class="empty mt"><span class="muted small">${later.length ? t.emptyNext : t.emptyList}</span></div>`;
   if(todo.length) h += `<div class="sechead"><h2>${t.toBuy} <span class="muted num">${todo.length}</span></h2>${todo.length>1 ? `<span class="small muted">${t.reorderHint}</span>` : ""}</div>`
     + `<div class="lgroup" data-group="todo">${todo.map(i => row(i, todo.length>1)).join("")}</div>`;
   if(done.length) h += `<div class="sechead"><h2>${t.inCart} <span class="muted num">${done.length}</span></h2></div><div class="lgroup" data-group="done">${done.map(i => row(i, false)).join("")}</div>`;
+  h += `<div class="sechead" style="margin-top:34px"><h2>${t.forLater} <span class="muted num">${later.length}</span></h2></div><p class="hint" style="margin:-4px 0 6px">${t.forLaterHint}</p>`
+    + (later.length ? `<div class="lgroup" data-group="later">${later.map(i => row(i, later.length>1)).join("")}</div>` : "")
+    + `<form class="laterform" id="laterForm" autocomplete="off"><input id="lLater" placeholder="${t.phLater}" aria-label="${t.phLater}"><button class="btn ghost" type="submit">${t.add}</button></form>`;
   return h;
 }
 
@@ -1228,6 +1247,11 @@ function bindForms(){
     state.list.push({id:uid(), name:p.name, qty:p.qty, unit:p.unit, checked:false, cat:ui.listCat || guessCat(p.name)}); commit();
     const i = $("#lName"); if(i) i.focus();
   });
+  on("#laterForm", () => {
+    const p = parseEntry($("#lLater").value); if(!p.name){ toast(t.tWriteName); return; }
+    state.list.push({id:uid(), name:p.name, qty:p.qty, unit:p.unit, checked:false, later:true, cat:guessCat(p.name)}); commit();
+    const i = $("#lLater"); if(i) i.focus();
+  });
   on("#itemForm", () => {
     const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value, cat = ui.pantryCat;
     if(!name || (cat==="food" && !(q>0))){ toast(t.tNameQty); return; }
@@ -1401,10 +1425,13 @@ function openListItem(id){
     <div class="grid2"><label class="field"><span>${t.qtyOpt}</span><input id="liQty" inputmode="decimal" value="${dq!=null ? qfmt(dq) : ""}"></label>
       <label class="field"><span>${t.unit}</span><select id="liUnit"><option value="" ${uSel ? "" : "selected"}>${t.noUnit}</option>${units.map(u => `<option value="${u}" ${u===uSel ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></label></div>
     <p class="hint">${t.qtyListHint}</p>
+    <div class="field"><span>${t.when}</span><div class="seg" id="liWhen"><button type="button" data-w="next" aria-pressed="${!it.later}">${t.nextShop}</button><button type="button" data-w="later" aria-pressed="${!!it.later}">${t.forLater}</button></div></div>
     <div class="field"><span>${t.category}</span><div class="seg" id="liCat">${[["food",t.foodShort],["breakfast",t.bfShort],["home",t.homeShort]].map(([c,l]) => `<button type="button" data-c="${c}" aria-pressed="${cat===c}">${l}</button>`).join("")}</div></div>
     <button type="button" class="btn danger" id="liDel">${t.removeFromList}</button>
     ${sheetButtons(t.save)}`, {form:true, blurEnter:true});
   $$("#liCat button", el).forEach(b => b.onclick = () => { cat = b.dataset.c; $$("#liCat button", el).forEach(x => x.setAttribute("aria-pressed", String(x===b))); });
+  let later = !!it.later;
+  $$("#liWhen button", el).forEach(b => b.onclick = () => { later = b.dataset.w==="later"; $$("#liWhen button", el).forEach(x => x.setAttribute("aria-pressed", String(x===b))); });
   $("#liDel", el).onclick = () => { closeSheet(); withUndo(t.tListRemoved, () => { state.list = state.list.filter(i => i.id!==id); }); };
   el.onsubmit = e => {
     e.preventDefault();
@@ -1414,8 +1441,11 @@ function openListItem(id){
     const p = parseEntry(raw);
     if(!(q>0) && p.qty>0){ q = p.qty; u = p.unit; }
     if(q>0 && !u) u = "pz";
-    Object.assign(it, {name:p.name || cap(raw), qty:q>0 ? q : null, unit:q>0 ? u : null, cat});
-    blurActive(); closeSheet(); commit(); toast(t.tListSaved);
+    const moved = later!==!!it.later;
+    Object.assign(it, {name:p.name || cap(raw), qty:q>0 ? q : null, unit:q>0 ? u : null, cat, later});
+    if(later) it.checked = false;
+    if(moved) moveToEnd(it);
+    blurActive(); closeSheet(); commit(); toast(moved ? (later ? t.tMovedLater(it.name) : t.tMovedNext(it.name)) : t.tListSaved);
   };
 }
 
@@ -1648,6 +1678,7 @@ const A = {
   toggleCheck: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.checked = !it.checked; commit(); } },
   flipCat: el => { const it = state.list.find(i => i.id===el.dataset.id), order = ["food","breakfast","home"]; if(it){ it.cat = order[(order.indexOf(catOf(it))+1) % 3]; commit(); } },
   editListItem: el => openListItem(el.dataset.id),
+  toNext: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.later = false; moveToEnd(it); commit(); toast(T().tMovedNext(it.name)); } },
   delListItem: el => withUndo(T().tListRemoved, () => { state.list = state.list.filter(i => i.id!==el.dataset.id); }),
   listCat: el => { ui.listCat = el.dataset.cat==="auto" ? null : el.dataset.cat; $$("[data-act=listCat]").forEach(b => b.setAttribute("aria-pressed", String(b===el))); },
   endShop: () => openEndShop(),
