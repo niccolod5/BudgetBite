@@ -269,7 +269,8 @@ input::placeholder{color:var(--muted);opacity:.8}
 .sheet{background:var(--surface);width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;border-radius:24px 24px 0 0;
   padding:16px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px;animation:up .22s ease-out}
 @keyframes up{from{transform:translateY(30px);opacity:.6}}
-.sheet .grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:-4px auto 2px}
+.sheet .grab,.picker .grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:-4px auto 2px;flex:none}
+.picker .grab{margin:-4px auto 10px}
 .sheet .head{display:grid;gap:4px}
 .ingr{display:grid;grid-template-columns:minmax(0,1fr) 96px 40px;gap:6px;align-items:end}
 .ingr .ingleft{grid-column:1/-1;margin-top:-2px}
@@ -330,7 +331,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
 
 /* =========================================================
    1. TESTI (italiano / inglese)
@@ -370,21 +371,19 @@ const STR = {
   missingT:"Non hai tutto in dispensa", missNone:n=>`${n}, da comprare`, missShort:(nm,q,n)=>`${nm}, ne ${n===1?"resta":"restano"} solo ${q}`,
   toList:"Aggiungi alla lista", tAddedToList:k=>k===1?"1 prodotto aggiunto alla lista":`${k} prodotti aggiunti alla lista`, tAllInList:"È già tutto in lista",
   tMealAdded:"Pasto aggiunto", tMealSaved:"Pasto aggiornato", tMealRemoved:"Pasto rimosso", tFavShort:"salvato tra i preferiti", deleteMeal:"Elimina il pasto",
-  pantrySub:"Quello che hai in casa e quanto ne resta.", food:"Alimentari", home:"Casa e igiene", foodShort:"Cibo", homeShort:"Casa", breakfast:"Colazione", bfShort:"Colazione",
-  addProduct:"Aggiungi un prodotto", addHomeProduct:"Aggiungi un prodotto per la casa", addBfProduct:"Aggiungi un prodotto per la colazione", phFood:"es. Pesce surgelato", phHome:"es. Detersivo piatti", phBf:"es. Marmellata",
-  available:"Disponibili", inHome:"In casa",
+  pantrySub:"Gli alimentari che hai in casa e quanto ne resta.", food:"Alimentari", home:"Casa e igiene", foodShort:"Cibo", homeShort:"Casa", breakfast:"Colazione", bfShort:"Colazione",
+  addProduct:"Aggiungi un prodotto", phFood:"es. Pesce surgelato",
+  available:"Disponibili",
   emptyPantryList:"Qui compare quello che hai comprato, con la quantità che resta dopo aver pianificato i pasti.",
-  emptyHome:"Qui finiscono detersivi, prodotti per l'igiene e tutto ciò che non si mangia. Non compaiono tra gli ingredienti dei pasti.",
-  emptyBf:"Qui finiscono i prodotti della colazione. L'app non ne chiede la quantità e non li propone per pranzi e cene.",
-  usedIn:"Usato in ", notUsed:"Non ancora usato", backToList:"Rimetti in lista", inListAlready:"Già in lista", finishedBtn:"Finito",
-  tAdded:n=>`${n} in dispensa`, tProductDeleted:"Prodotto eliminato", tPlainDone:"Prodotto segnato come finito", tToList:n=>`${n} in lista`,
+  usedIn:"Usato in ", notUsed:"Non ancora usato",
+  tAdded:n=>`${n} in dispensa`, tProductDeleted:"Prodotto eliminato",
   editProduct:"Modifica il prodotto", alreadyUsed:q=>`Nei pasti è già previsto l'uso di ${q}, quindi la quantità totale non può essere inferiore.`,
   qtyTooLow:q=>`Quantità troppo bassa, nei pasti è già previsto l'uso di ${q}`,
   cantChangeKind:"Questo prodotto è già usato nei pasti, puoi passare solo a un'unità dello stesso tipo",
   tNameQty:"Inserisci il nome e una quantità maggiore di zero", tSaved:"Salvato",
   listTitle:"Lista della spesa", listSub:"Spunta i prodotti man mano che li metti nel carrello.", phList:"es. Pesce 300g", listAdd:"Prodotto da comprare",
   autoCat:"Automatico",
-  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce. Altrimenti a fine spesa te la chiede, ma solo per gli alimentari di pranzi e cene. Casa e colazione vengono riconosciute da sole, tocca l'etichetta per cambiarla.",
+  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce, altrimenti te la chiede a fine spesa. Colazione e Casa restano solo in lista, senza quantità né dispensa. L'app le riconosce da sola, tocca l'etichetta per cambiarla.",
   emptyList:"La lista è vuota. Aggiungi quello che vuoi comprare, poi al supermercato spunta i prodotti man mano.",
   toBuy:"Da prendere", inCart:"Nel carrello", endShop:n=>`Fine spesa · ${n} ${n===1?"prodotto":"prodotti"}`,
   check:"Spunta", uncheck:"Togli la spunta a", changeCat:"Cambia categoria di", removeFromList:"Togli dalla lista", tListRemoved:"Prodotto tolto dalla lista",
@@ -394,13 +393,13 @@ const STR = {
   when:"Quando", nextShop:"Prossima spesa", laterIcon:"Per dopo",
   tMovedNext:n=>`${n} è nella prossima spesa`, tMovedLater:n=>`${n} è in “Per dopo”`, emptyNext:"Per la prossima spesa non hai ancora niente in lista.",
   tWriteName:"Scrivi il nome del prodotto",
-  endLabel:"Fine spesa", endT:n=>`Aggiungo ${n===1?"1 prodotto":n+" prodotti"} alla dispensa?`, qtyToSet:"quantità da indicare",
+  endLabel:"Fine spesa", endT:n=>`Concludi la spesa con ${n===1?"1 prodotto":n+" prodotti"}?`, plainEndHint:"Gli alimentari vanno in dispensa. Colazione e casa escono solo dalla lista.", qtyToSet:"quantità da indicare",
   willAsk:n=>n===1?"Per un prodotto ti chiederò la quantità o il peso.":`Per ${n} prodotti ti chiederò la quantità o il peso, uno alla volta.`,
   productOf:(a,b)=>`Prodotto ${a} di ${b}`, howMuch:n=>`Che quantità di ${n} hai comprato?`,
   lastStep:"Ultimo passo", howMuchSpent:"Quanto hai speso?", receiptTotal:"Totale scontrino €", phReceipt:"es. 34,80 (facoltativo)",
   receiptHint:"Viene sottratto dal budget spesa di questa settimana. Puoi anche lasciarlo vuoto e registrarlo dopo in Spesa.", toPantry:"Metti in dispensa",
   tQtyPos:"Inserisci una quantità maggiore di zero",
-  tShopDone:(n,a)=>`${n===1?"1 prodotto aggiunto":n+" prodotti aggiunti"} alla dispensa${a?", "+a+" sottratti":""}`,
+  tShopDone:(n,a)=>`${n ? (n===1?"1 prodotto aggiunto":n+" prodotti aggiunti")+" alla dispensa" : "Spesa conclusa"}${a?", "+a+" sottratti":""}`,
   fromList:"Spesa da lista",
   shopSub:"Il budget della spesa, alimentari e casa insieme.", leftWeek:"Restano questa settimana", leftMonth:m=>`Restano a ${m}`, leftUntil:(d,m)=>`Restano fino ${itAl(d)} ${m}`,
   spentOf:(a,b)=>`spesi ${a}<br>su ${b}`, carryPlus:a=>`Comprende ${a} avanzati nelle settimane precedenti`, carryMinus:a=>`Tolti ${a} sforati nelle settimane precedenti`,
@@ -423,8 +422,7 @@ const STR = {
   last6:"Ultimi 6 mesi", colMonth:"Mese", colShop:"Spesa", colExtra:"Extra", colDiff:"Saldo",
   extraByCat:"Extra per categoria", topExtra:"Le voci più costose", noExtraP:"Nessun extra in questo periodo.",
   shopStats:"Spese al supermercato", trips:"Spese registrate", avgTrip:"Scontrino medio", maxTrip:"Scontrino più alto",
-  kitchen:"Cucina e dispensa", mealsPlanned:"Pasti pianificati questa settimana", ofN:n=>`su ${n}`, boughtFood:"Alimentari comprati",
-  boughtHome:"Prodotti per la casa comprati", inPantryNow:"Disponibili in dispensa", favCount:"Piatti preferiti",
+  kitchen:"Cucina e dispensa", mealsPlanned:"Pasti pianificati questa settimana", ofN:n=>`su ${n}`, boughtFood:"Alimentari comprati", inPantryNow:"Disponibili in dispensa", favCount:"Piatti preferiti",
   piggyT:"Salvadanaio", piggyWeeks:w=>w===0?"Il primo avanzo arriva a fine settimana.":`Messi da parte in ${w===1?"1 settimana":w+" settimane"}, al netto dei prelievi.`,
   goalProgress:(p,n,a)=>n?`${p}% dell'obiettivo ${n} (${a})`:`${p}% dell'obiettivo di ${a}`,
   emptyPiggy:"Svuota il salvadanaio", tPiggyEmptied:a=>`Salvadanaio svuotato, tolti ${a}`, piggyEmptyNote:"Salvadanaio svuotato",
@@ -445,7 +443,7 @@ const STR = {
   carryNextHint:"Quello che avanza si aggiunge al budget della settimana dopo. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
   carryPiggyHint:"Quello che avanza ogni settimana finisce nel salvadanaio, che trovi in Analisi. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
   goalName:"Obiettivo (facoltativo)", phGoal:"es. Vacanza", goalAmount:"Cifra da raggiungere €", phGoalAmt:"es. 300", saveGoal:"Salva l'obiettivo", tGoalSaved:"Obiettivo salvato",
-  sBf:"Prodotti della colazione", sBfD:"Per questi prodotti l'app non chiede la quantità a fine spesa e non li propone per pranzi e cene. Valgono anche i nomi che iniziano così, come “Latte di soia”.",
+  sBf:"Prodotti della colazione", sBfD:"Questi prodotti restano solo nella lista. A fine spesa escono dalla lista senza andare in dispensa e senza chiederti la quantità. Valgono anche i nomi che iniziano così, come “Latte di soia”.",
   phBfAdd:"es. Biscotti", noBf:"Nessun prodotto.", tBfAdded:"Elenco della colazione aggiornato", tBfRemoved:"Tolto dall'elenco della colazione", bfExists:"È già nell'elenco",
   sFavs:"Piatti preferiti", sFavsD:"Si creano dal foglio di un pasto, con “Salva tra i piatti preferiti”.", noFavs:"Ancora nessun piatto preferito.",
   removeFav:"Togli dai preferiti", tFavRemoved:"Piatto tolto dai preferiti",
@@ -488,21 +486,19 @@ const STR = {
   missingT:"Not everything is in the pantry", missNone:n=>`${n}, to buy`, missShort:(n,q)=>`${n}, only ${q} left`,
   toList:"Add to list", tAddedToList:k=>k===1?"1 item added to the list":`${k} items added to the list`, tAllInList:"Everything is already on the list",
   tMealAdded:"Meal added", tMealSaved:"Meal updated", tMealRemoved:"Meal removed", tFavShort:"saved as favourite", deleteMeal:"Delete meal",
-  pantrySub:"What you have at home and how much is left.", food:"Food", home:"Home & hygiene", foodShort:"Food", homeShort:"Home", breakfast:"Breakfast", bfShort:"Breakfast",
-  addProduct:"Add a product", addHomeProduct:"Add a household product", addBfProduct:"Add a breakfast product", phFood:"e.g. Frozen fish", phHome:"e.g. Dish soap", phBf:"e.g. Jam",
-  available:"Available", inHome:"At home",
+  pantrySub:"The food you have at home and how much is left.", food:"Food", home:"Home & hygiene", foodShort:"Food", homeShort:"Home", breakfast:"Breakfast", bfShort:"Breakfast",
+  addProduct:"Add a product", phFood:"e.g. Frozen fish",
+  available:"Available",
   emptyPantryList:"What you bought shows up here, with what's left after planning your meals.",
-  emptyHome:"Detergents, toiletries and anything you don't eat go here. They never show up as meal ingredients.",
-  emptyBf:"Breakfast products go here. The app doesn't ask their quantity and doesn't suggest them for lunch and dinner.",
-  usedIn:"Used in ", notUsed:"Not used yet", backToList:"Add back to list", inListAlready:"On the list", finishedBtn:"Used up",
-  tAdded:n=>`${n} added to the pantry`, tProductDeleted:"Product deleted", tPlainDone:"Marked as used up", tToList:n=>`${n} added to the list`,
+  usedIn:"Used in ", notUsed:"Not used yet",
+  tAdded:n=>`${n} added to the pantry`, tProductDeleted:"Product deleted",
   editProduct:"Edit product", alreadyUsed:q=>`${q} is already planned in meals, so the total can't be lower.`,
   qtyTooLow:q=>`Quantity too low, ${q} is already planned in meals`,
   cantChangeKind:"This product is already used in meals, you can only switch to a unit of the same kind",
   tNameQty:"Enter a name and a quantity above zero", tSaved:"Saved",
   listTitle:"Shopping list", listSub:"Tick products off as they go in the cart.", phList:"e.g. Fish 300g", listAdd:"Product to buy",
   autoCat:"Auto",
-  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up. Otherwise it asks you when you finish shopping, but only for lunch and dinner food. Home and breakfast items are detected on their own; tap the tag to change it.",
+  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up, otherwise it asks you when you finish shopping. Breakfast and Home items stay on the list only, with no quantity or pantry. The app detects them; tap the tag to change it.",
   emptyList:"The list is empty. Add what you want to buy, then tick items off at the store.",
   toBuy:"To buy", inCart:"In the cart", endShop:n=>`Finish shopping · ${n} ${n===1?"item":"items"}`,
   check:"Tick", uncheck:"Untick", changeCat:"Change category of", removeFromList:"Remove from list", tListRemoved:"Removed from the list",
@@ -512,13 +508,13 @@ const STR = {
   when:"When", nextShop:"Next shopping", laterIcon:"For later",
   tMovedNext:n=>`${n} is on the next shopping`, tMovedLater:n=>`${n} is in “For later”`, emptyNext:"Nothing on the list for the next shopping yet.",
   tWriteName:"Type the product name",
-  endLabel:"Finish shopping", endT:n=>`Add ${n===1?"1 item":n+" items"} to the pantry?`, qtyToSet:"quantity needed",
+  endLabel:"Finish shopping", endT:n=>`Finish shopping with ${n===1?"1 item":n+" items"}?`, plainEndHint:"Food goes to the pantry. Breakfast and home items just leave the list.", qtyToSet:"quantity needed",
   willAsk:n=>n===1?"I'll ask you the quantity or weight of one item.":`I'll ask you the quantity or weight of ${n} items, one at a time.`,
   productOf:(a,b)=>`Item ${a} of ${b}`, howMuch:n=>`What quantity of ${n} did you buy?`,
   lastStep:"Last step", howMuchSpent:"How much did you spend?", receiptTotal:"Receipt total €", phReceipt:"e.g. 34.80 (optional)",
   receiptHint:"It's subtracted from this week's grocery budget. You can leave it empty and log it later in Groceries.", toPantry:"Put in pantry",
   tQtyPos:"Enter a quantity above zero",
-  tShopDone:(n,a)=>`${n===1?"1 item":n+" items"} added to the pantry${a?", "+a+" subtracted":""}`,
+  tShopDone:(n,a)=>`${n ? (n===1?"1 item":n+" items")+" added to the pantry" : "Shopping done"}${a?", "+a+" subtracted":""}`,
   fromList:"Shopping from list",
   shopSub:"Your grocery budget, food and household together.", leftWeek:"Left this week", leftMonth:m=>`Left in ${m}`, leftUntil:(d,m)=>`Left until ${d} ${m}`,
   spentOf:(a,b)=>`spent ${a}<br>of ${b}`, carryPlus:a=>`Includes ${a} left over from previous weeks`, carryMinus:a=>`Minus ${a} overspent in previous weeks`,
@@ -541,8 +537,7 @@ const STR = {
   last6:"Last 6 months", colMonth:"Month", colShop:"Groc.", colExtra:"Extras", colDiff:"Balance",
   extraByCat:"Extras by category", topExtra:"Most expensive entries", noExtraP:"No extras in this period.",
   shopStats:"Grocery trips", trips:"Expenses logged", avgTrip:"Average receipt", maxTrip:"Biggest receipt",
-  kitchen:"Kitchen and pantry", mealsPlanned:"Meals planned this week", ofN:n=>`of ${n}`, boughtFood:"Food items bought",
-  boughtHome:"Household items bought", inPantryNow:"Available in pantry", favCount:"Favourite dishes",
+  kitchen:"Kitchen and pantry", mealsPlanned:"Meals planned this week", ofN:n=>`of ${n}`, boughtFood:"Food items bought", inPantryNow:"Available in pantry", favCount:"Favourite dishes",
   piggyT:"Savings jar", piggyWeeks:w=>w===0?"The first leftover arrives at the end of the week.":`Saved over ${w===1?"1 week":w+" weeks"}, net of withdrawals.`,
   goalProgress:(p,n,a)=>n?`${p}% of the ${n} goal (${a})`:`${p}% of the ${a} goal`,
   emptyPiggy:"Empty the savings jar", tPiggyEmptied:a=>`Savings jar emptied, ${a} taken out`, piggyEmptyNote:"Savings jar emptied",
@@ -563,7 +558,7 @@ const STR = {
   carryNextHint:"What's left over is added to next week's budget. If you overspend, the difference is taken off. It starts from this week.",
   carryPiggyHint:"What's left over each week goes into the savings jar, which you'll find in Stats. If you overspend, the difference is taken off. It starts from this week.",
   goalName:"Goal (optional)", phGoal:"e.g. Holiday", goalAmount:"Target amount €", phGoalAmt:"e.g. 300", saveGoal:"Save goal", tGoalSaved:"Goal saved",
-  sBf:"Breakfast products", sBfD:"The app doesn't ask the quantity of these when you finish shopping and doesn't suggest them for lunch and dinner. Names that start with these words count too.",
+  sBf:"Breakfast products", sBfD:"These products stay on the list only. When you finish shopping they leave the list without going to the pantry or asking a quantity. Names that start with these words count too.",
   phBfAdd:"e.g. Biscuits", noBf:"No products.", tBfAdded:"Breakfast list updated", tBfRemoved:"Removed from the breakfast list", bfExists:"Already on the list",
   sFavs:"Favourite dishes", sFavsD:"Create them from a meal sheet with “Save as a favourite dish”.", noFavs:"No favourite dishes yet.",
   removeFav:"Remove from favourites", tFavRemoved:"Dish removed from favourites",
@@ -595,6 +590,8 @@ function normalize(s){
   if(!o.monthBudgets || typeof o.monthBudgets!=="object" || Array.isArray(o.monthBudgets)) o.monthBudgets = {};
   o.mig = Object.assign({}, o.mig);
   if(!o.mig.bf1){ markBreakfast(o); o.mig.bf1 = true; }
+  // Colazione e casa non stanno più in dispensa: restano solo nella lista.
+  if(!o.mig.plain1){ o.items = o.items.filter(i => (i.cat || "food")==="food"); o.mig.plain1 = true; }
   // Ottobre 2026: budget mensile ridotto (spesa 240 €, extra 234 €), modificabile in Opzioni.
   // Il mese di budget parte dal 14 (arrivo dello stipendio), modificabile in Opzioni.
   if(!o.mig.ms14){ o.settings.monthStart = 14; o.mig.ms14 = true; }
@@ -604,15 +601,16 @@ function normalize(s){
 }
 const normName = s => String(s || "").toLowerCase().replace(/[’‘`´]/g, "'").replace(/\bdi\s+(?=[aeiouàèéìòù])/g, "d'").replace(/\s+/g, " ").trim();
 function isBreakfastName(name, list){ const n = normName(name); return (list || []).some(k => { const kk = normName(k); return kk && (n===kk || n.startsWith(kk+" ")); }); }
-// Sposta in Colazione i prodotti con quei nomi: in lista sempre, in dispensa solo se non sono già usati nei pasti.
+// Sposta in Colazione i prodotti della lista con quei nomi e li toglie dalla dispensa (se non sono già usati nei pasti):
+// la colazione si segna solo in lista, senza tenere il conto di quanto resta.
 function markBreakfast(o){
   const usedIds = new Set(o.meals.flatMap(m => (m.ing || []).map(g => g.itemId)));
   for(const l of o.list) if((l.cat || "food")==="food" && isBreakfastName(l.name, o.settings.breakfast)) l.cat = "breakfast";
-  for(const i of o.items) if((i.cat || "food")==="food" && !usedIds.has(i.id) && isBreakfastName(i.name, o.settings.breakfast)) i.cat = "breakfast";
+  o.items = o.items.filter(i => usedIds.has(i.id) || !isBreakfastName(i.name, o.settings.breakfast));
 }
 
 let state = blank();
-const ui = {tab:"week", prevTab:"week", weekOffset:0, pantryCat:"food", listCat:null, statsPeriod:"week", restore:false, confirmClear:false};
+const ui = {tab:"week", prevTab:"week", weekOffset:0, listCat:null, statsPeriod:"week", restore:false, confirmClear:false};
 let dbRef = null, dirty = false, writing = false, saveTimer = null, syncKey = "local";
 const T = () => STR[state.settings.lang] || STR.it;
 
@@ -726,7 +724,6 @@ function defaultPortion(it, avail){
    ========================================================= */
 const itemById = id => state.items.find(i => i.id===id);
 const catOf = i => i.cat==="home" ? "home" : i.cat==="breakfast" ? "breakfast" : "food";
-const isHome = i => i.cat==="home";
 const isFood = i => catOf(i)==="food";
 function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!==exceptMealId) for(const g of m.ing) if(g.itemId===id) s += +g.qty || 0; return s; }
 function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
@@ -1026,22 +1023,15 @@ function viewList(){
 
 /* ---- Dispensa ---- */
 function viewPantry(){
-  const t = T(), cat = ui.pantryCat, plain = cat!=="food";
-  const segBtn = (c, l) => `<button data-act="pantryCat" data-cat="${c}" aria-pressed="${cat===c}">${l}</button>`;
+  // La dispensa tiene solo gli alimentari. Colazione e casa restano solo nella lista della spesa.
+  const t = T();
   let h = pagehead(t.tabPantry, t.pantrySub);
-  h += `<div class="seg" style="margin-bottom:12px">${segBtn("food", t.food)}${segBtn("breakfast", t.breakfast)}${segBtn("home", t.home)}</div>
-  <form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
-    <div class="label">${cat==="home" ? t.addHomeProduct : cat==="breakfast" ? t.addBfProduct : t.addProduct}</div>
-    <input id="itName" placeholder="${cat==="home" ? t.phHome : cat==="breakfast" ? t.phBf : t.phFood}" aria-label="${t.name}">
-    <div class="grid2"><label class="field"><span>${plain ? t.qtyOpt : t.qty}</span><input id="itQty" inputmode="decimal" placeholder="${plain ? "" : t.phQty}"></label>
-      <label class="field"><span>${t.unit}</span><select id="itUnit">${unitList().map(u => `<option value="${u}" ${u===(plain ? "pz" : unitList()[0]) ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></label></div>
+  h += `<form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
+    <div class="label">${t.addProduct}</div>
+    <input id="itName" placeholder="${t.phFood}" aria-label="${t.name}">
+    <div class="grid2"><label class="field"><span>${t.qty}</span><input id="itQty" inputmode="decimal" placeholder="${t.phQty}"></label>
+      <label class="field"><span>${t.unit}</span><select id="itUnit">${unitList().map(u => `<option value="${u}" ${u===unitList()[0] ? "selected" : ""}>${ul(u)}</option>`).join("")}</select></label></div>
     <button class="btn" type="submit">${t.add}</button></form>`;
-  if(plain){
-    const list = state.items.filter(i => catOf(i)===cat).sort((a,b) => boughtAt(b).localeCompare(boughtAt(a)));
-    h += `<div class="sechead"><h2>${t.inHome} <span class="muted num">${list.length}</span></h2></div>`;
-    if(!list.length) h += `<div class="empty"><span class="muted small">${cat==="home" ? t.emptyHome : t.emptyBf}</span></div>`;
-    return h + `<div class="stack">${list.map(plainCard).join("")}</div>`;
-  }
   // I prodotti finiti spariscono dalla dispensa ma restano nei dati, per i pasti già fatti e per l'analisi.
   // Quando li ricompri dalla lista tornano disponibili.
   const avail = state.items.filter(i => isFood(i) && remaining(i)>0).sort((a,b) => boughtAt(b).localeCompare(boughtAt(a)));
@@ -1049,10 +1039,6 @@ function viewPantry(){
   if(!avail.length) h += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
   h += `<div class="stack">${avail.map(foodCard).join("")}</div>`;
   return h;
-}
-function listBtn(it){
-  const t = T();
-  return inList(it.name) ? `<span class="chip neutral" style="align-self:center">${t.inListAlready}</span>` : `<button class="link small" data-act="itemToList" data-id="${it.id}">${t.backToList}</button>`;
 }
 function foodCard(it){
   const t = T(), r = remaining(it), pct = it.qty ? Math.min(100, r/it.qty*100) : 0;
@@ -1065,12 +1051,6 @@ function foodCard(it){
     <div class="uses">${uses.length ? t.usedIn + uses.map(esc).join(" · ") : t.notUsed}</div>
     <div class="actions"><button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.del}</button></div></div>`;
 }
-function plainCard(it){
-  const t = T();
-  return `<div class="item"><div class="h"><b>${esc(it.name)}</b><span class="q num muted">${qs(it.qty, it.unit)}</span></div>
-    <div class="actions">${listBtn(it)}<button class="link small" data-act="editItem" data-id="${it.id}">${t.edit}</button><button class="link small danger" data-act="delItem" data-id="${it.id}">${t.finishedBtn}</button></div></div>`;
-}
-
 /* ---- Spesa ---- */
 function viewShop(){
   const t = T(), now = new Date(), ws = sow(now), [ma, mb, mName] = monthBounds();
@@ -1215,9 +1195,8 @@ function viewStats(){
   h += `<div class="sechead"><h2>${t.kitchen}</h2></div><div class="tiles num">
     <div class="tile"><span class="s">${t.mealsPlanned}</span><span class="v">${slots} <span class="s">${t.ofN(14)}</span></span></div>
     <div class="tile"><span class="s">${t.inPantryNow}</span><span class="v">${state.items.filter(i => isFood(i) && remaining(i)>0).length}</span></div>
-    <div class="tile"><span class="s">${t.boughtFood}</span><span class="v">${added.filter(i => !isHome(i)).length}</span></div>
-    <div class="tile"><span class="s">${t.boughtHome}</span><span class="v">${added.filter(isHome).length}</span></div>
-    <div class="tile wide"><span class="s">${t.favCount}</span><span class="v">${state.favs.length}</span></div></div>`;
+    <div class="tile"><span class="s">${t.boughtFood}</span><span class="v">${added.filter(isFood).length}</span></div>
+    <div class="tile"><span class="s">${t.favCount}</span><span class="v">${state.favs.length}</span></div></div>`;
   return h;
 }
 
@@ -1311,9 +1290,9 @@ function bindForms(){
     const i = $("#lName"); if(i) i.focus();
   });
   on("#itemForm", () => {
-    const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value, cat = ui.pantryCat;
-    if(!name || (cat==="food" && !(q>0))){ toast(t.tNameQty); return; }
-    state.items.push({id:uid(), name, qty:q>0 ? q : null, unit, cat, added:new Date().toISOString()});
+    const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value;
+    if(!name || !(q>0)){ toast(t.tNameQty); return; }
+    state.items.push({id:uid(), name, qty:q, unit, cat:"food", added:new Date().toISOString()});
     blurActive(); commit(); toast(t.tAdded(name));
   });
   on("#expForm", () => {
@@ -1359,7 +1338,49 @@ function sheet(inner, {form=false, blurEnter=false} = {}){
   $("#sheetRoot").innerHTML = `<div class="scrim" data-act="closeSheet"><${tag} class="sheet" id="sheetEl" ${blurEnter ? 'data-enter="blur"' : ""} role="dialog" aria-modal="true" autocomplete="off"><div class="grab"></div>${inner}</${tag}></div>`;
   const el = $("#sheetEl");
   $$("input:not([type=date]):not([type=checkbox])", el).forEach(i => i.setAttribute("enterkeyhint", blurEnter ? "done" : "enter"));
+  swipeToClose(el, el.parentNode, () => el, () => { blurActive(); closeSheet(); });
   return el;
+}
+// Trascinare un foglio verso il basso lo chiude, come Annulla: non salva nulla.
+// Parte solo se il contenuto è già in cima, così lo scorrimento normale resta com'è.
+function swipeToClose(panel, scrim, scrollerOf, close){
+  let x0 = 0, y0 = 0, dy = 0, v = 0, lastY = 0, lastT = 0, mode = null;
+  const base = (getComputedStyle(scrim).backgroundColor.match(/[\d.]+/g) || []).map(Number);
+  const tint = k => { if(base.length>=3) scrim.style.backgroundColor = `rgba(${base[0]},${base[1]},${base[2]},${(base[3] ?? 1)*k})`; };
+  panel.addEventListener("touchstart", e => {
+    const p = e.touches[0], sc = scrollerOf(e.target), a = document.activeElement;
+    mode = e.touches.length!==1 || (sc && sc.scrollTop>0) || (e.target===a && a.matches("input,textarea")) ? "no" : null;
+    x0 = p.clientX; y0 = lastY = p.clientY; lastT = e.timeStamp; dy = 0; v = 0;
+  }, {passive:true});
+  panel.addEventListener("touchmove", e => {
+    if(mode==="no" || mode==="done") return;
+    if(e.touches.length!==1){ if(mode==="drag") snap(); mode = "no"; return; }
+    const p = e.touches[0], ddy = p.clientY - y0, ddx = p.clientX - x0;
+    if(mode===null && (ddy<0 || Math.abs(ddx)>ddy)){ mode = "no"; return; }
+    if(e.cancelable) e.preventDefault();
+    if(mode===null){ if(ddy<4) return; mode = "drag"; panel.style.animation = "none"; panel.style.transition = "none"; }
+    const dt = e.timeStamp - lastT;
+    if(dt>0){ v = 0.6*v + 0.4*(p.clientY - lastY)/dt; lastY = p.clientY; lastT = e.timeStamp; }
+    dy = Math.max(0, ddy);
+    panel.style.transform = `translateY(${dy}px)`;
+    tint(Math.max(0, 1 - dy/(panel.offsetHeight || 400)));
+  }, {passive:false});
+  function snap(){
+    panel.style.transition = "transform .2s ease-out"; panel.style.transform = "";
+    scrim.style.transition = "background-color .2s"; scrim.style.backgroundColor = "";
+  }
+  const end = () => {
+    if(mode!=="drag"){ if(mode!=="done") mode = null; return; }
+    const h = panel.offsetHeight || 400;
+    if(dy > Math.min(140, h*0.3) || (dy>40 && v>0.45)){
+      mode = "done";
+      panel.style.transition = "transform .2s ease-in"; panel.style.transform = `translateY(${h + 40}px)`;
+      scrim.style.transition = "background-color .2s"; tint(0);
+      setTimeout(close, 190);
+    } else { mode = null; snap(); }
+  };
+  panel.addEventListener("touchend", end);
+  panel.addEventListener("touchcancel", end);
 }
 const sheetButtons = okLabel => `<div class="grid2"><button type="button" class="btn ghost" data-act="closeSheet">${T().cancel}</button><button class="btn" type="submit">${okLabel}</button></div>`;
 
@@ -1395,11 +1416,12 @@ function openMeal(date, slot, mealId){
     const taken = rowItems(exceptRow), opts = pool.filter(i => !taken.includes(i.id));
     const wrap = document.createElement("div");
     wrap.className = "pscrim";
-    wrap.innerHTML = `<div class="picker" role="dialog" aria-modal="true" aria-label="${t.pickT}">
+    wrap.innerHTML = `<div class="picker" role="dialog" aria-modal="true" aria-label="${t.pickT}"><div class="grab"></div>
       <div class="phead"><h2>${t.pickT}</h2><button type="button" class="x" data-close aria-label="${t.close}">✕</button></div>
       <div class="plist">${onPlan ? `<button type="button" class="pitem plan" data-plan="1"><b>✎ ${t.notInPantry}</b><span>${t.notInPantryD}</span></button>` : ""}
         ${opts.length ? opts.map(i => `<button type="button" class="pitem ${i.id===current ? "on" : ""}" data-id="${i.id}"><b>${esc(i.name)}</b><span class="num">${t.left} ${mqs(avail(i), i.unit)}</span></button>`).join("") : `<p class="hint" style="padding:12px 0">${t.pickEmpty}</p>`}</div></div>`;
     $("#sheetRoot").appendChild(wrap);
+    swipeToClose($(".picker", wrap), wrap, el => el.closest(".plist"), () => wrap.remove());
     wrap.addEventListener("click", e => {
       if(e.target===wrap || e.target.closest("[data-close]")){ wrap.remove(); return; }
       const b = e.target.closest(".pitem"); if(!b) return;
@@ -1703,8 +1725,10 @@ function openEndShop(){
   function show(){
     let body;
     if(step===-1){
+      const plainN = sel.filter(i => catOf(i)!=="food").length;
       body = `<div class="head"><div class="label">${t.endLabel}</div><h2>${t.endT(sel.length)}</h2></div>
-        <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${i.qty>0 ? qs(i.qty, i.unit) : catOf(i)==="home" ? t.home : catOf(i)==="breakfast" ? t.breakfast : t.qtyToSet}</span></li>`).join("")}</ul>
+        <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${catOf(i)==="home" ? t.home : catOf(i)==="breakfast" ? t.breakfast : i.qty>0 ? qs(i.qty, i.unit) : t.qtyToSet}</span></li>`).join("")}</ul>
+        ${plainN ? `<p class="hint">${t.plainEndHint}</p>` : ""}
         ${missing.length ? `<p class="hint">${t.willAsk(missing.length)}</p>` : ""}
         ${sheetButtons(t.confirm)}`;
     } else if(step < missing.length){
@@ -1734,23 +1758,23 @@ function openEndShop(){
     };
   }
   function finish(amt){
-    for(const i of sel){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz", catOf(i)); }
+    let nFood = 0;
+    for(const i of sel){ if(catOf(i)!=="food") continue; const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz"); nFood++; }
     const ids = new Set(sel.map(i => i.id));
     state.list = state.list.filter(i => !ids.has(i.id));
     if(amt>0) state.expenses.push({id:uid(), amount:r2(amt), date:iso(new Date()), note:t.fromList});
-    blurActive(); closeSheet(); commit(); toast(t.tShopDone(sel.length, amt>0 ? eur(amt) : ""));
+    blurActive(); closeSheet(); commit(); toast(t.tShopDone(nFood, amt>0 ? eur(amt) : ""));
   }
   show();
 }
-function addToPantry(name, qty, unit, cat){
-  // Colazione e casa: un solo prodotto per nome, anche se le unità non coincidono.
-  const ex = state.items.find(i => sameName(i.name, name) && catOf(i)===cat && (cat!=="food" || DIM[i.unit]===DIM[unit]));
+// Solo alimentari: colazione e casa restano nella lista e non entrano in dispensa.
+function addToPantry(name, qty, unit){
+  const ex = state.items.find(i => isFood(i) && sameName(i.name, name) && DIM[i.unit]===DIM[unit]);
   if(ex){
     ex.bought = new Date().toISOString();
-    if(qty>0 && ex.qty==null){ ex.qty = qty; ex.unit = unit; }
-    else if(qty>0 && DIM[ex.unit]===DIM[unit]) ex.qty = Math.round((ex.qty + qty*F[unit]/F[ex.unit])*1000)/1000;
+    if(qty>0) ex.qty = Math.round(((ex.qty || 0) + qty*F[unit]/F[ex.unit])*1000)/1000;
   }
-  else state.items.push({id:uid(), name, qty:qty>0 ? qty : null, unit, cat, added:new Date().toISOString()});
+  else state.items.push({id:uid(), name, qty:qty>0 ? qty : null, unit, cat:"food", added:new Date().toISOString()});
 }
 
 /* ---- Dati di esempio ---- */
@@ -1785,11 +1809,10 @@ const A = {
     commit(); toast(n ? T().tAddedToList(n) : T().tAllInList);
   },
   delMeal: el => withUndo(T().tMealRemoved, () => { state.meals = state.meals.filter(m => m.id!==el.dataset.id); }),
-  pantryCat: el => { ui.pantryCat = el.dataset.cat; render(); },
   editItem: el => openItem(el.dataset.id),
   delItem: el => {
     const id = el.dataset.id, it = itemById(id); if(!it) return;
-    withUndo(isFood(it) ? T().tProductDeleted : T().tPlainDone, () => {
+    withUndo(T().tProductDeleted, () => {
       // Nei pasti di oggi e dei giorni dopo l'ingrediente resta, come provvisorio da comprare.
       const today = iso(new Date());
       state.items = state.items.filter(i => i.id!==id);
@@ -1797,7 +1820,6 @@ const A = {
       state.meals = state.meals.filter(m => m.ing.length || m.name);
     });
   },
-  itemToList: el => { const it = itemById(el.dataset.id); if(it && addToList(it.name, catOf(it))){ commit(); toast(T().tToList(it.name)); } },
   toggleCheck: el => { const it = state.list.find(i => i.id===el.dataset.id); if(it){ it.checked = !it.checked; commit(); } },
   flipCat: el => { const it = state.list.find(i => i.id===el.dataset.id), order = ["food","breakfast","home"]; if(it){ it.cat = order[(order.indexOf(catOf(it))+1) % 3]; commit(); } },
   editListItem: el => openListItem(el.dataset.id),
