@@ -166,6 +166,8 @@ input::placeholder{color:var(--muted);opacity:.8}
 .weeknav .mid .link{min-height:28px;font-size:.82rem}
 .day{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 6px;margin-bottom:10px}
 .day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.day.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%,35%{box-shadow:0 0 0 1px var(--accent) inset,0 0 0 5px var(--accent-soft)}100%{box-shadow:0 0 0 1px var(--accent) inset,0 0 0 0 transparent}}
 .day.past{opacity:.8}
 .dhead{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
 .dname{font-family:var(--display);font-weight:800;font-size:1.05rem}
@@ -354,7 +356,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "1.8";
+const APP_VERSION = "1.9";
 
 /* =========================================================
    1. TESTI (italiano / inglese)
@@ -375,7 +377,7 @@ const STR = {
   qtyIn:u=>`Quantità (${u})`, phQty:"es. 300", inPantryLeft:(q,n)=>`In dispensa ne ${n===1?"resta":"restano"} ${q}`,
   weekSub:"Pranzi e cene con gli ingredienti della dispensa. Tieni premuto un pasto per spostarlo in un altro giorno.",
   tMealMoved:(d,s)=>`Spostato a ${s} di ${d.toLowerCase()}`, tMealsSwapped:"Pasti scambiati",
-  thisWeek:"Questa settimana", nextWeek:"Prossima settimana", lastWeek:"Settimana scorsa", backToday:"Torna a oggi",
+  thisWeek:"Questa settimana", nextWeek:"Prossima settimana", lastWeek:"Settimana scorsa", goToday:"Vai a oggi", backThisWeek:"Torna alla settimana attuale",
   prevWeekA:"Settimana precedente", nextWeekA:"Settimana successiva", today:"oggi", lunch:"Pranzo", dinner:"Cena",
   addMealFor:(s,d)=>`Aggiungi ${s.toLowerCase()}, ${d}`, removeMeal:"Rimuovi il pasto", removedIng:"ingrediente rimosso", meal:"Pasto",
   emptyPantryT:"La dispensa è vuota",
@@ -405,6 +407,9 @@ const STR = {
   boughtAgo:n=>n===0?"Comprato oggi":n===1?"Comprato ieri":`Comprato ${n} giorni fa`, onList:"Già in lista", toListBtn:"Ricompra", finished:"Finito",
   tKeptAdded:(n,c)=>`${n} in ${c}`, tKeptDone:n=>`${n} finito`, tToList:n=>`${n} in lista`,
   tNotKept:(n,c)=>`${n} è in ${c}, non si tiene in dispensa`,
+  noQtyT:"Senza quantità", noQtyD:"Ci sono o non ci sono, non vengono scalati dai pasti.", noQtyTag:"in dispensa, senza quantità",
+  tLooseAdded:n=>`${n} in dispensa, senza quantità`,
+  kwTab:{loose:"Alimentari", breakfast:"Colazione", snack:"Merenda", drinks:"Bibite", cond:"Condimenti"},
   addProduct:"Aggiungi un prodotto", phFood:"es. Pesce surgelato",
   available:"Disponibili",
   emptyPantryList:"Qui compare quello che hai comprato, con la quantità che resta dopo aver pianificato i pasti.",
@@ -477,8 +482,8 @@ const STR = {
   carryPiggyHint:"Quello che avanza ogni settimana finisce nel salvadanaio, che trovi in Analisi. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
   goalName:"Obiettivo (facoltativo)", phGoal:"es. Vacanza", goalAmount:"Cifra da raggiungere €", phGoalAmt:"es. 300", saveGoal:"Salva l'obiettivo", tGoalSaved:"Obiettivo salvato",
   sKw:"Prodotti senza quantità", sKwD:"Quando scrivi questi prodotti in lista l'app li mette da sola nella categoria giusta. Valgono anche i nomi più lunghi, come “Latte di soia” o “Skyr ai mirtilli”.",
-  kwD:{breakfast:"Restano solo nella lista. A fine spesa escono senza andare in dispensa.", snack:"A fine spesa vanno in Dispensa, nella sezione Merenda, senza quantità.", drinks:"A fine spesa vanno in Dispensa, nella sezione Bibite, senza quantità.", cond:"Restano solo nella lista. Non entrano mai in dispensa né negli ingredienti dei pasti."},
-  phKw:{breakfast:"es. Biscotti", snack:"es. Yogurt greco", drinks:"es. Tè freddo", cond:"es. Curry"},
+  kwD:{loose:"Alimentari che non pesi, come il pane. Stanno in Dispensa tra gli alimentari ma senza quantità, a fine spesa non ti chiede quanto ne hai preso e non entrano negli ingredienti dei pasti.", breakfast:"Restano solo nella lista. A fine spesa escono senza andare in dispensa.", snack:"A fine spesa vanno in Dispensa, nella sezione Merenda, senza quantità.", drinks:"A fine spesa vanno in Dispensa, nella sezione Bibite, senza quantità.", cond:"Restano solo nella lista. Non entrano mai in dispensa né negli ingredienti dei pasti."},
+  phKw:{loose:"es. Piadine", breakfast:"es. Biscotti", snack:"es. Yogurt greco", drinks:"es. Tè freddo", cond:"es. Curry"},
   kwElsewhere:c=>`È già nell'elenco ${c}`, tKwAdded:c=>`Elenco ${c} aggiornato`, tKwRemoved:c=>`Tolto dall'elenco ${c}`,
   noBf:"Nessun prodotto.", bfExists:"È già nell'elenco",
   sFavs:"Piatti preferiti", sFavsD:"Si creano dal foglio di un pasto, con “Salva tra i piatti preferiti”.", noFavs:"Ancora nessun piatto preferito.",
@@ -503,7 +508,7 @@ const STR = {
   qtyIn:u=>`Quantity (${u})`, phQty:"e.g. 300", inPantryLeft:q=>`${q} left in the pantry`,
   weekSub:"Lunches and dinners with ingredients from the pantry. Press and hold a meal to move it to another day.",
   tMealMoved:(d,s)=>`Moved to ${d}, ${s}`, tMealsSwapped:"Meals swapped",
-  thisWeek:"This week", nextWeek:"Next week", lastWeek:"Last week", backToday:"Back to today",
+  thisWeek:"This week", nextWeek:"Next week", lastWeek:"Last week", goToday:"Go to today", backThisWeek:"Back to this week",
   prevWeekA:"Previous week", nextWeekA:"Next week", today:"today", lunch:"Lunch", dinner:"Dinner",
   addMealFor:(s,d)=>`Add ${s.toLowerCase()}, ${d}`, removeMeal:"Remove meal", removedIng:"removed ingredient", meal:"Meal",
   emptyPantryT:"Your pantry is empty",
@@ -533,6 +538,9 @@ const STR = {
   boughtAgo:n=>n===0?"Bought today":n===1?"Bought yesterday":`Bought ${n} days ago`, onList:"On the list", toListBtn:"Rebuy", finished:"Used up",
   tKeptAdded:(n,c)=>`${n} added to ${c}`, tKeptDone:n=>`${n} used up`, tToList:n=>`${n} added to the list`,
   tNotKept:(n,c)=>`${n} is in ${c}, not kept in the pantry`,
+  noQtyT:"No quantity", noQtyD:"Either you have them or not, meals don't use them up.", noQtyTag:"pantry, no quantity",
+  tLooseAdded:n=>`${n} added to the pantry, no quantity`,
+  kwTab:{loose:"Food", breakfast:"Breakfast", snack:"Snacks", drinks:"Drinks", cond:"Seasonings"},
   addProduct:"Add a product", phFood:"e.g. Frozen fish",
   available:"Available",
   emptyPantryList:"What you bought shows up here, with what's left after planning your meals.",
@@ -605,8 +613,8 @@ const STR = {
   carryPiggyHint:"What's left over each week goes into the savings jar, which you'll find in Stats. If you overspend, the difference is taken off. It starts from this week.",
   goalName:"Goal (optional)", phGoal:"e.g. Holiday", goalAmount:"Target amount €", phGoalAmt:"e.g. 300", saveGoal:"Save goal", tGoalSaved:"Goal saved",
   sKw:"Products without quantity", sKwD:"When you write these on the list the app puts them in the right category. Longer names count too, like “Soy milk” or “Blueberry skyr”.",
-  kwD:{breakfast:"They stay on the list only and leave it when you finish shopping.", snack:"When you finish shopping they go to the Snacks section of the pantry, with no quantity.", drinks:"When you finish shopping they go to the Drinks section of the pantry, with no quantity.", cond:"They stay on the list only and never go to the pantry or into meals."},
-  phKw:{breakfast:"e.g. Biscuits", snack:"e.g. Greek yogurt", drinks:"e.g. Iced tea", cond:"e.g. Curry"},
+  kwD:{loose:"Food you don't weigh, like bread. It stays in the pantry with the food but with no quantity, you aren't asked how much you bought and it never goes into meal ingredients.", breakfast:"They stay on the list only and leave it when you finish shopping.", snack:"When you finish shopping they go to the Snacks section of the pantry, with no quantity.", drinks:"When you finish shopping they go to the Drinks section of the pantry, with no quantity.", cond:"They stay on the list only and never go to the pantry or into meals."},
+  phKw:{loose:"e.g. Wraps", breakfast:"e.g. Biscuits", snack:"e.g. Greek yogurt", drinks:"e.g. Iced tea", cond:"e.g. Curry"},
   kwElsewhere:c=>`Already on the ${c} list`, tKwAdded:c=>`${c} list updated`, tKwRemoved:c=>`Removed from the ${c} list`,
   noBf:"No products.", bfExists:"Already on the list",
   sFavs:"Favourite dishes", sFavsD:"Create them from a meal sheet with “Save as a favourite dish”.", noFavs:"No favourite dishes yet.",
@@ -630,16 +638,20 @@ const LIST_KEYS = ["items","expenses","meals","list","extras","favs","piggyOut"]
 // in dispensa senza quantità. Colazione, Condimenti e Casa restano solo nella lista.
 const CATS = ["food","snack","drinks","breakfast","cond","home"];
 const KEPT = ["snack","drinks"];
+// Alimentari senza quantità (come il pane): stanno in dispensa tra gli alimentari ma senza quantità e fuori dai pasti.
+// In lista restano "Cibo", è il nome a decidere. Nella dispensa la loro categoria interna è "loose".
+const ITEM_CATS = [...CATS, "loose"];
 // Categorie riconosciute dal nome con gli elenchi modificabili in Opzioni.
-const KW_CATS = ["breakfast","snack","drinks","cond"];
+const KW_CATS = ["loose","breakfast","snack","drinks","cond"];
 const DEFAULT_KW = {
+  loose:["Pane"],
   breakfast:["Arance","Latte","Burro d'arachidi","Marmellata"],
   snack:["Banane","Barrette proteiche","Skyr"],
   drinks:["Coca Zero","Coca Cola","Aranciata","Tè freddo","Birra","Vino","Acqua"],
   cond:["Aglio","Cipolla","Cipollotto","Scalogno","Erbe aromatiche","Prezzemolo","Basilico","Rosmarino","Salvia","Timo","Origano","Menta","Alloro","Erba cipollina","Peperoncino","Zenzero","Olio","Aceto","Sale","Pepe","Spezie"]
 };
 const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, monthStart:1, carry:"off", carryFrom:null,
-  breakfast:[...DEFAULT_KW.breakfast], snack:[...DEFAULT_KW.snack], drinks:[...DEFAULT_KW.drinks], cond:[...DEFAULT_KW.cond]});
+  loose:[...DEFAULT_KW.loose], breakfast:[...DEFAULT_KW.breakfast], snack:[...DEFAULT_KW.snack], drinks:[...DEFAULT_KW.drinks], cond:[...DEFAULT_KW.cond]});
 const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
   items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, monthBudgets:{}, settings:blankSettings()});
 function normalize(s){
@@ -655,6 +667,8 @@ function normalize(s){
   if(!o.mig.plain1){ o.items = o.items.filter(i => ["food", ...KEPT].includes(i.cat || "food")); o.mig.plain1 = true; }
   // Merenda / Frutta, Bibite e Condimenti: i prodotti già in lista o in dispensa passano nella loro categoria.
   if(!o.mig.cats1){ markCats(o); o.mig.cats1 = true; }
+  // Il pane non si pesa più: resta in dispensa senza quantità.
+  if(!o.mig.loose1){ markCats(o); o.mig.loose1 = true; }
   // Ottobre 2026: budget mensile ridotto (spesa 240 €, extra 234 €), modificabile in Opzioni.
   // Il mese di budget parte dal 14 (arrivo dello stipendio), modificabile in Opzioni.
   if(!o.mig.ms14){ o.settings.monthStart = 14; o.mig.ms14 = true; }
@@ -670,20 +684,33 @@ function kwMatch(name, list){
   return N.length>0 && (list || []).some(k => { const K = nameTokens(k); return K.length>0 && K[0]===N[0] && K.every(w => N.includes(w)); });
 }
 const catByName = (name, st) => KW_CATS.find(c => kwMatch(name, st[c])) || null;
+// Categoria in lista: gli alimentari senza quantità in lista sono semplicemente "Cibo".
+const listCatByName = (name, st) => { const c = catByName(name, st); return c==="loose" ? "food" : c; };
 // Rimette in ordine lista e dispensa dopo che cambiano gli elenchi delle Opzioni.
 // In lista gli alimentari riconosciuti cambiano categoria. In dispensa merenda e bibite restano senza quantità,
-// colazione esce (se non è già usata nei pasti) e i condimenti escono sempre, anche dagli ingredienti dei pasti.
+// colazione esce (se non è già usata nei pasti). Condimenti e alimentari senza quantità (il pane) escono sempre
+// dagli ingredienti dei pasti: i condimenti spariscono dalla dispensa, il pane resta ma senza quantità.
 function markCats(o){
   const usedIds = new Set(o.meals.flatMap(m => (m.ing || []).map(g => g.itemId)));
-  for(const l of o.list) if((l.cat || "food")==="food"){ const c = catByName(l.name, o.settings); if(c) l.cat = c; }
+  for(const l of o.list) if((l.cat || "food")==="food"){ const c = listCatByName(l.name, o.settings); if(c) l.cat = c; }
   const isFoodItem = i => (i.cat || "food")==="food";
-  const cond = new Set(o.items.filter(i => isFoodItem(i) && catByName(i.name, o.settings)==="cond").map(i => i.id));
-  for(const m of o.meals) m.ing = (m.ing || []).filter(g => g.plan ? catByName(g.name, o.settings)!=="cond" : !cond.has(g.itemId));
+  const noMeal = c => c==="cond" || c==="loose";
+  const left = i => (i.qty || 0) - o.meals.reduce((s,m) => s + (m.ing || []).filter(g => g.itemId===i.id).reduce((a,g) => a + (+g.qty || 0), 0), 0);
+  const strip = o.items.filter(i => isFoodItem(i) && noMeal(catByName(i.name, o.settings)));
+  const leftOf = new Map(strip.map(i => [i.id, left(i)]));
+  const stripIds = new Set(strip.map(i => i.id));
+  for(const m of o.meals) m.ing = (m.ing || []).filter(g => g.plan ? !noMeal(catByName(g.name, o.settings)) : !stripIds.has(g.itemId));
   o.items = o.items.filter(i => {
     if(!isFoodItem(i)) return true;
     const c = catByName(i.name, o.settings);
     if(!c) return true;
     if(c==="cond") return false;
+    // Pane: resta solo se non era già finito, e una volta sola per nome.
+    if(c==="loose"){
+      if(!(leftOf.get(i.id) > 0)) return false;
+      if(o.items.some(x => x!==i && x.cat==="loose" && nameScore(x.name, i.name)>=2)) return false;
+      i.cat = "loose"; i.qty = null; return true;
+    }
     if(usedIds.has(i.id)) return true;
     if(KEPT.includes(c)){ i.cat = c; i.qty = null; return true; }
     return false;
@@ -804,7 +831,7 @@ function defaultPortion(it, avail){
    4. LOGICA: dispensa, budget, riporti, categorie
    ========================================================= */
 const itemById = id => state.items.find(i => i.id===id);
-const catOf = i => CATS.includes(i.cat) ? i.cat : "food";
+const catOf = i => ITEM_CATS.includes(i.cat) ? i.cat : "food";
 const isFood = i => catOf(i)==="food";
 function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!==exceptMealId) for(const g of m.ing) if(g.itemId===id) s += +g.qty || 0; return s; }
 function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
@@ -880,7 +907,7 @@ function piggy(){
 // Categoria casa per lista e dispensa.
 const HOME_WORDS = ["detersiv","sapone","shampoo","balsamo","bagnoschiuma","doccia schiuma","carta igienica","carta casa","scottex","fazzolett","tovaglioli","dentifricio","spazzolino","collutorio","deodorante","rasoi","lamette","assorbenti","cotton fioc","dischetti","spugn","sacchetti","sacchi","ammorbidente","candeggina","varechina","sgrassatore","anticalcare","lavastoviglie","pellicola","alluminio","carta forno","pile","lampadin","crema mani","crema viso","igienizzante","salviette","stracci","panni","mocio","profumatore","insetticida","detergente",
  "detergent","soap","conditioner","shower gel","toilet paper","kitchen roll","paper towel","tissue","napkin","toothpaste","toothbrush","mouthwash","deodorant","razor","sponge","bin bag","bleach","cling film","foil","baking paper","batteries","bulb","wipes","fabric softener","dishwasher","cleaner"];
-const guessCat = n => HOME_WORDS.some(w => n.toLowerCase().includes(w)) ? "home" : catByName(n, state.settings) || "food";
+const guessCat = n => HOME_WORDS.some(w => n.toLowerCase().includes(w)) ? "home" : listCatByName(n, state.settings) || "food";
 
 // Categorie degli extra, riconosciute dalle parole.
 const XCATS = ["food","fun","transport","shopping","subs","health","other"];
@@ -1042,7 +1069,7 @@ function viewWeek_(){
   const tag = ui.weekOffset===0 ? t.thisWeek : ui.weekOffset===1 ? t.nextWeek : ui.weekOffset===-1 ? t.lastWeek : "";
   let h = pagehead(t.tabWeek, t.weekSub);
   h += `<div class="weeknav"><button class="iconbtn" data-act="weekPrev" aria-label="${t.prevWeekA}">${I.back}</button>
-    <div class="mid"><h2 class="num">${rangeLabel(ws)}</h2>${ui.weekOffset===0 ? `<span class="small muted">${tag}</span>` : `<button class="link" data-act="weekToday">${tag ? tag+" · " : ""}${t.backToday}</button>`}</div>
+    <div class="mid"><h2 class="num">${rangeLabel(ws)}</h2>${tag ? `<span class="small muted">${tag}</span>` : ""}${ui.weekOffset===0 ? `<button class="link" data-act="goToday">${t.goToday}</button>` : `<button class="link" data-act="weekToday">${t.backThisWeek}</button>`}</div>
     <button class="iconbtn" data-act="weekNext" aria-label="${t.nextWeekA}">${I.fwd}</button></div>`;
   if(!state.items.some(isFood) && !state.meals.length){
     h += `<div class="empty" style="margin-bottom:12px"><b>${t.emptyPantryT}</b><span class="muted small">${t.emptyPantryD}</span>
@@ -1123,6 +1150,9 @@ function viewPantry(){
   h += `<div class="sechead"><h2>${t.available} <span class="muted num">${avail.length}</span></h2></div>`;
   if(!avail.length) h += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
   h += `<div class="stack">${avail.map(foodCard).join("")}</div>`;
+  const loose = state.items.filter(i => catOf(i)==="loose").sort((a,b) => a.name.localeCompare(b.name, t.locale));
+  if(loose.length) h += `<div class="sechead" style="margin-top:22px"><h2>${t.noQtyT} <span class="muted num">${loose.length}</span></h2></div>
+    <p class="hint" style="margin:-4px 0 10px">${t.noQtyD}</p><div class="card klist">${loose.map(keptRow).join("")}</div>`;
   return h;
 }
 function viewKept(cat){
@@ -1333,10 +1363,10 @@ function viewSettings(){
       <button class="btn ghost" type="submit">${t.saveGoal}</button></form>` : ""}</div>`;
   const kc = ui.kwCat || "breakfast";
   h += `<div class="card mt" style="display:grid;gap:10px"><div class="t" style="font-weight:700">${t.sKw}</div><p class="hint">${t.sKwD}</p>
-    <div class="seg g2">${KW_CATS.map(c => `<button type="button" data-act="kwCat" data-cat="${c}" aria-pressed="${kc===c}">${t.catL[c]}</button>`).join("")}</div>
+    <div class="seg g3">${KW_CATS.map(c => `<button type="button" data-act="kwCat" data-cat="${c}" aria-pressed="${kc===c}">${t.kwTab[c]}</button>`).join("")}</div>
     <p class="hint">${t.kwD[kc]}</p>
     <div class="tags">${s[kc].map((b,i) => `<span class="tag">${esc(b)}<button type="button" class="x" data-act="delKw" data-cat="${kc}" data-i="${i}" aria-label="${t.del} ${esc(b)}">✕</button></span>`).join("") || `<p class="small muted">${t.noBf}</p>`}</div>
-    <form class="row" id="kwForm" autocomplete="off"><input id="kwIn" placeholder="${t.phKw[kc]}" aria-label="${t.catL[kc]}"><button class="btn" type="submit" style="flex:none">${t.add}</button></form></div>`;
+    <form class="row" id="kwForm" autocomplete="off"><input id="kwIn" placeholder="${t.phKw[kc]}" aria-label="${t.kwTab[kc]}"><button class="btn" type="submit" style="flex:none">${t.add}</button></form></div>`;
   h += `<div class="card mt"><div class="t" style="font-weight:700">${t.sFavs}</div><p class="hint" style="margin:4px 0 6px">${t.sFavsD}</p>
     ${state.favs.length ? state.favs.map(f => `<div class="favrow"><div class="nm"><b>${esc(f.name)}</b><span>${f.ing.map(g => esc(g.name)+" "+mqs(g.qty, g.unit)).join(" · ")}</span></div><button class="x" data-act="delFav" data-id="${f.id}" aria-label="${t.removeFav} ${esc(f.name)}">✕</button></div>`).join("") : `<p class="small muted">${t.noFavs}</p>`}</div>`;
   h += `<div class="card mt" style="display:grid;gap:10px">
@@ -1398,6 +1428,7 @@ function bindForms(){
     const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value;
     // Merenda e bibite vanno nella loro sezione, colazione, condimenti e casa non si tengono in dispensa.
     const c = name ? guessCat(name) : "food";
+    if(name && catByName(name, state.settings)==="loose"){ addKept(name, "loose"); blurActive(); commit(); toast(t.tLooseAdded(name)); return; }
     if(KEPT.includes(c)){ addKept(name, c); blurActive(); commit(); toast(t.tKeptAdded(name, t.catL[c])); return; }
     if(c!=="food"){ toast(t.tNotKept(name, t.catL[c])); return; }
     if(!name || !(q>0)){ toast(t.tNameQty); return; }
@@ -1426,8 +1457,8 @@ function bindForms(){
   on("#kwForm", () => {
     const c = ui.kwCat || "breakfast", v = cap($("#kwIn").value.trim()); if(!v) return;
     const other = KW_CATS.find(k => state.settings[k].some(b => normName(b)===normName(v)));
-    if(other){ toast(other===c ? t.bfExists : t.kwElsewhere(t.catL[other])); return; }
-    state.settings[c].push(v); markCats(state); commit(); toast(t.tKwAdded(t.catL[c]));
+    if(other){ toast(other===c ? t.bfExists : t.kwElsewhere(t.kwTab[other])); return; }
+    state.settings[c].push(v); markCats(state); commit(); toast(t.tKwAdded(t.kwTab[c]));
     const i = $("#kwIn"); if(i) i.focus();
   });
   on("#keptForm", () => {
@@ -1919,7 +1950,8 @@ function openPiggyOut(){
 function openEndShop(){
   const t = T(), sel = state.list.filter(i => i.checked).map(i => ({...i}));
   if(!sel.length) return;
-  const missing = sel.filter(i => !(i.qty>0) && catOf(i)==="food");
+  const isLoose = i => catOf(i)==="food" && catByName(i.name, state.settings)==="loose";
+  const missing = sel.filter(i => !(i.qty>0) && catOf(i)==="food" && !isLoose(i));
   const total = missing.length + 1;
   let step = -1;
   const bar = cur => `<div class="steps">${Array.from({length:total}, (_,k) => `<i class="${k<=cur ? "on" : ""}"></i>`).join("")}</div>`;
@@ -1927,7 +1959,7 @@ function openEndShop(){
     let body;
     if(step===-1){
       const plainN = sel.filter(i => catOf(i)!=="food").length;
-      const where = i => catOf(i)!=="food" ? t.catL[catOf(i)] : i.qty>0 ? qs(i.qty, i.unit) : t.qtyToSet;
+      const where = i => catOf(i)!=="food" ? t.catL[catOf(i)] : isLoose(i) ? t.noQtyTag : i.qty>0 ? qs(i.qty, i.unit) : t.qtyToSet;
       body = `<div class="head"><div class="label">${t.endLabel}</div><h2>${t.endT(sel.length)}</h2></div>
         <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${where(i)}</span></li>`).join("")}</ul>
         ${plainN ? `<p class="hint">${t.plainEndHint}</p>` : ""}
@@ -1963,7 +1995,8 @@ function openEndShop(){
     let nFood = 0;
     for(const i of sel){
       const c = catOf(i);
-      if(c==="food"){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz"); nFood++; }
+      if(isLoose(i)){ addKept(i.name, "loose"); nFood++; }
+      else if(c==="food"){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz"); nFood++; }
       else if(KEPT.includes(c)){ addKept(i.name, c); nFood++; }
     }
     const ids = new Set(sel.map(i => i.id));
@@ -2013,7 +2046,14 @@ const A = {
   closeSheet: (el, e) => { if(el.classList.contains("scrim") && e.target!==el) return; blurActive(); closeSheet(); },
   weekPrev: () => { ui.weekOffset--; render(); },
   weekNext: () => { ui.weekOffset++; render(); },
-  weekToday: () => { ui.weekOffset = 0; render(); },
+  weekToday: () => { ui.weekOffset = 0; render(); $("#scroller").scrollTop = 0; },
+  // Porta in cima il giorno di oggi e lo fa lampeggiare un attimo.
+  goToday: () => {
+    const d = $(".day.today"), sc = $("#scroller"); if(!d) return;
+    const top = sc.scrollTop + d.getBoundingClientRect().top - sc.getBoundingClientRect().top - 12;
+    try{ sc.scrollTo({top, behavior:"smooth"}); }catch(e){ sc.scrollTop = top; }
+    d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
+  },
   addMeal: el => openMeal(el.dataset.date, el.dataset.slot),
   editMeal: el => openMeal(null, null, el.dataset.id),
   weekToList: () => {
@@ -2036,7 +2076,7 @@ const A = {
   pickCat: el => openCatPicker(el.dataset.id),
   pantryCat: el => { ui.pantryCat = el.dataset.cat; render(); },
   kwCat: el => { ui.kwCat = el.dataset.cat; render(); },
-  keptToList: el => { const it = itemById(el.dataset.id); if(it){ addToList(it.name, catOf(it)); commit(); toast(T().tToList(it.name)); } },
+  keptToList: el => { const it = itemById(el.dataset.id); if(it){ addToList(it.name, catOf(it)==="loose" ? "food" : catOf(it)); commit(); toast(T().tToList(it.name)); } },
   keptDone: el => { const it = itemById(el.dataset.id); if(it) withUndo(T().tKeptDone(it.name), () => { state.items = state.items.filter(i => i.id!==it.id); }); },
   editListItem: el => openListItem(el.dataset.id),
   delListItem: el => withUndo(T().tListRemoved, () => { state.list = state.list.filter(i => i.id!==el.dataset.id); }),
@@ -2059,7 +2099,7 @@ const A = {
     if(k==="weekStart") ui.weekOffset = 0;
     applyTheme(); commit();
   },
-  delKw: el => withUndo(T().tKwRemoved(T().catL[el.dataset.cat]), () => { state.settings[el.dataset.cat].splice(Number(el.dataset.i), 1); }),
+  delKw: el => withUndo(T().tKwRemoved(T().kwTab[el.dataset.cat]), () => { state.settings[el.dataset.cat].splice(Number(el.dataset.i), 1); }),
   delFav: el => withUndo(T().tFavRemoved, () => { state.favs = state.favs.filter(f => f.id!==el.dataset.id); }),
   backupCopy: () => {
     const t = T(), txt = JSON.stringify(Object.assign({app:"BudgetBite"}, state));
