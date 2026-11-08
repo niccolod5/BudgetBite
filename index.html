@@ -136,6 +136,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 .chip.neutral{background:var(--sunk);color:var(--muted)}
 .chip.fruit{background:var(--fruit-soft);color:var(--fruit)}
 .chip.drink{background:var(--drink-soft);color:var(--drink)}
+.chip.other{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
 .empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--r);padding:18px;display:grid;gap:12px}
 
 /* ---------- budget hero ---------- */
@@ -356,7 +357,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "1.9";
+const APP_VERSION = "1.10";
 
 /* =========================================================
    1. TESTI (italiano / inglese)
@@ -398,9 +399,9 @@ const STR = {
   toList:"Aggiungi alla lista", tAddedToList:k=>k===1?"1 prodotto aggiunto alla lista":`${k} prodotti aggiunti alla lista`, tAllInList:"È già tutto in lista",
   tMealAdded:"Pasto aggiunto", tMealSaved:"Pasto aggiornato", tMealRemoved:"Pasto rimosso", tFavShort:"salvato tra i preferiti", deleteMeal:"Elimina il pasto",
   pantrySub:"Quello che hai in casa. Degli alimentari vedi anche quanto ne resta.",
-  catL:{food:"Alimentari", snack:"Merenda / Frutta", drinks:"Bibite", breakfast:"Colazione", cond:"Condimenti", home:"Casa e igiene"},
-  catS:{food:"Cibo", snack:"Merenda", drinks:"Bibite", breakfast:"Colazione", cond:"Condimenti", home:"Casa"},
-  catD:{food:"In dispensa con la quantità", snack:"In dispensa senza quantità", drinks:"In dispensa senza quantità", breakfast:"Solo in lista", cond:"Solo in lista", home:"Solo in lista"},
+  catL:{food:"Alimentari", snack:"Merenda / Frutta", drinks:"Bibite", breakfast:"Colazione", cond:"Condimenti", home:"Casa e igiene", other:"Altro"},
+  catS:{food:"Cibo", snack:"Merenda", drinks:"Bibite", breakfast:"Colazione", cond:"Condimenti", home:"Casa", other:"Altro"},
+  catD:{food:"In dispensa con la quantità", snack:"In dispensa senza quantità", drinks:"In dispensa senza quantità", breakfast:"Solo in lista", cond:"Solo in lista", home:"Solo in lista", other:"Solo in lista"},
   addTo:c=>`Aggiungi a ${c}`, phKept:{snack:"es. Skyr", drinks:"es. Coca Zero"},
   keptHint:"Qui non serve la quantità. Arrivano da soli quando concludi la spesa. Quando stanno per finire tocca Ricompra, quando sono finiti tocca Finito.",
   emptyKept:{snack:"Banane, skyr, barrette e gli altri prodotti dell'elenco Merenda / Frutta finiscono qui quando concludi la spesa.", drinks:"Coca Zero e le altre bibite dell'elenco Bibite finiscono qui quando concludi la spesa."},
@@ -409,7 +410,7 @@ const STR = {
   tNotKept:(n,c)=>`${n} è in ${c}, non si tiene in dispensa`,
   noQtyT:"Senza quantità", noQtyD:"Ci sono o non ci sono, non vengono scalati dai pasti.", noQtyTag:"in dispensa, senza quantità",
   tLooseAdded:n=>`${n} in dispensa, senza quantità`,
-  kwTab:{loose:"Alimentari", breakfast:"Colazione", snack:"Merenda", drinks:"Bibite", cond:"Condimenti"},
+  kwTab:{loose:"Alimentari", breakfast:"Colazione", snack:"Merenda", drinks:"Bibite", cond:"Condimenti", other:"Altro"},
   addProduct:"Aggiungi un prodotto", phFood:"es. Pesce surgelato",
   available:"Disponibili",
   emptyPantryList:"Qui compare quello che hai comprato, con la quantità che resta dopo aver pianificato i pasti.",
@@ -421,7 +422,7 @@ const STR = {
   tNameQty:"Inserisci il nome e una quantità maggiore di zero", tSaved:"Salvato",
   listTitle:"Lista della spesa", listSub:"Spunta i prodotti man mano che li metti nel carrello.", phList:"es. Pesce 300g", listAdd:"Prodotto da comprare",
   autoCat:"Automatica",
-  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce, altrimenti te la chiede a fine spesa. Merenda e bibite vanno in dispensa senza quantità, colazione, condimenti e casa restano solo in lista. La categoria la trova l'app, tocca l'etichetta per cambiarla.",
+  listHint:"Se scrivi la quantità nel nome (300g, 1kg, 1,5 lt, 6 pz, x2) l'app la riconosce, altrimenti te la chiede a fine spesa. Merenda e bibite vanno in dispensa senza quantità, colazione, condimenti, casa e altro restano solo in lista. La categoria la trova l'app, tocca l'etichetta per cambiarla.",
   emptyList:"La lista è vuota. Aggiungi quello che vuoi comprare, poi al supermercato spunta i prodotti man mano.",
   toBuy:"Da prendere", inCart:"Nel carrello", endShop:n=>`Fine spesa · ${n} ${n===1?"prodotto":"prodotti"}`,
   check:"Spunta", uncheck:"Togli la spunta a", changeCat:"Cambia categoria di", removeFromList:"Togli dalla lista", tListRemoved:"Prodotto tolto dalla lista",
@@ -431,7 +432,7 @@ const STR = {
   when:"Quando", nextShop:"Prossima spesa", laterIcon:"Per dopo",
   tMovedNext:n=>`${n} è nella prossima spesa`, tMovedLater:n=>`${n} è in “Per dopo”`, emptyNext:"Per la prossima spesa non hai ancora niente in lista.",
   tWriteName:"Scrivi il nome del prodotto",
-  endLabel:"Fine spesa", endT:n=>`Concludi la spesa con ${n===1?"1 prodotto":n+" prodotti"}?`, plainEndHint:"Alimentari, merenda e bibite vanno in dispensa, solo gli alimentari con la quantità. Colazione, condimenti e casa escono solo dalla lista.", qtyToSet:"quantità da indicare",
+  endLabel:"Fine spesa", endT:n=>`Concludi la spesa con ${n===1?"1 prodotto":n+" prodotti"}?`, plainEndHint:"Alimentari, merenda e bibite vanno in dispensa, solo gli alimentari con la quantità. Colazione, condimenti, casa e altro escono solo dalla lista.", qtyToSet:"quantità da indicare",
   willAsk:n=>n===1?"Per un prodotto ti chiederò la quantità o il peso.":`Per ${n} prodotti ti chiederò la quantità o il peso, uno alla volta.`,
   productOf:(a,b)=>`Prodotto ${a} di ${b}`, howMuch:n=>`Che quantità di ${n} hai comprato?`,
   lastStep:"Ultimo passo", howMuchSpent:"Quanto hai speso?", receiptTotal:"Totale scontrino €", phReceipt:"es. 34,80 (facoltativo)",
@@ -482,8 +483,8 @@ const STR = {
   carryPiggyHint:"Quello che avanza ogni settimana finisce nel salvadanaio, che trovi in Analisi. Se sfori, la differenza viene tolta. Si parte da questa settimana.",
   goalName:"Obiettivo (facoltativo)", phGoal:"es. Vacanza", goalAmount:"Cifra da raggiungere €", phGoalAmt:"es. 300", saveGoal:"Salva l'obiettivo", tGoalSaved:"Obiettivo salvato",
   sKw:"Prodotti senza quantità", sKwD:"Quando scrivi questi prodotti in lista l'app li mette da sola nella categoria giusta. Valgono anche i nomi più lunghi, come “Latte di soia” o “Skyr ai mirtilli”.",
-  kwD:{loose:"Alimentari che non pesi, come il pane. Stanno in Dispensa tra gli alimentari ma senza quantità, a fine spesa non ti chiede quanto ne hai preso e non entrano negli ingredienti dei pasti.", breakfast:"Restano solo nella lista. A fine spesa escono senza andare in dispensa.", snack:"A fine spesa vanno in Dispensa, nella sezione Merenda, senza quantità.", drinks:"A fine spesa vanno in Dispensa, nella sezione Bibite, senza quantità.", cond:"Restano solo nella lista. Non entrano mai in dispensa né negli ingredienti dei pasti."},
-  phKw:{loose:"es. Piadine", breakfast:"es. Biscotti", snack:"es. Yogurt greco", drinks:"es. Tè freddo", cond:"es. Curry"},
+  kwD:{loose:"Alimentari che non pesi, come il pane. Stanno in Dispensa tra gli alimentari ma senza quantità, a fine spesa non ti chiede quanto ne hai preso e non entrano negli ingredienti dei pasti.", breakfast:"Restano solo nella lista. A fine spesa escono senza andare in dispensa.", snack:"A fine spesa vanno in Dispensa, nella sezione Merenda, senza quantità.", drinks:"A fine spesa vanno in Dispensa, nella sezione Bibite, senza quantità.", cond:"Restano solo nella lista. Non entrano mai in dispensa né negli ingredienti dei pasti.", other:"Tutto quello che non rientra nelle altre sezioni, come il cibo per la gatta o le gomme. Resta solo nella lista e a fine spesa esce senza andare in dispensa."},
+  phKw:{loose:"es. Piadine", breakfast:"es. Biscotti", snack:"es. Yogurt greco", drinks:"es. Tè freddo", cond:"es. Curry", other:"es. Pile"},
   kwElsewhere:c=>`È già nell'elenco ${c}`, tKwAdded:c=>`Elenco ${c} aggiornato`, tKwRemoved:c=>`Tolto dall'elenco ${c}`,
   noBf:"Nessun prodotto.", bfExists:"È già nell'elenco",
   sFavs:"Piatti preferiti", sFavsD:"Si creano dal foglio di un pasto, con “Salva tra i piatti preferiti”.", noFavs:"Ancora nessun piatto preferito.",
@@ -529,9 +530,9 @@ const STR = {
   toList:"Add to list", tAddedToList:k=>k===1?"1 item added to the list":`${k} items added to the list`, tAllInList:"Everything is already on the list",
   tMealAdded:"Meal added", tMealSaved:"Meal updated", tMealRemoved:"Meal removed", tFavShort:"saved as favourite", deleteMeal:"Delete meal",
   pantrySub:"What you have at home. For food you also see how much is left.",
-  catL:{food:"Food", snack:"Snacks / Fruit", drinks:"Drinks", breakfast:"Breakfast", cond:"Seasonings", home:"Home & hygiene"},
-  catS:{food:"Food", snack:"Snacks", drinks:"Drinks", breakfast:"Breakfast", cond:"Seasoning", home:"Home"},
-  catD:{food:"Pantry, with quantity", snack:"Pantry, no quantity", drinks:"Pantry, no quantity", breakfast:"List only", cond:"List only", home:"List only"},
+  catL:{food:"Food", snack:"Snacks / Fruit", drinks:"Drinks", breakfast:"Breakfast", cond:"Seasonings", home:"Home & hygiene", other:"Other"},
+  catS:{food:"Food", snack:"Snacks", drinks:"Drinks", breakfast:"Breakfast", cond:"Seasoning", home:"Home", other:"Other"},
+  catD:{food:"Pantry, with quantity", snack:"Pantry, no quantity", drinks:"Pantry, no quantity", breakfast:"List only", cond:"List only", home:"List only", other:"List only"},
   addTo:c=>`Add to ${c}`, phKept:{snack:"e.g. Skyr", drinks:"e.g. Coke Zero"},
   keptHint:"No quantity needed here. Items arrive on their own when you finish shopping. Tap Rebuy when they're running low and Used up when they're gone.",
   emptyKept:{snack:"Bananas, skyr, bars and the other items on the Snacks / Fruit list land here when you finish shopping.", drinks:"Coke Zero and the other items on the Drinks list land here when you finish shopping."},
@@ -540,7 +541,7 @@ const STR = {
   tNotKept:(n,c)=>`${n} is in ${c}, not kept in the pantry`,
   noQtyT:"No quantity", noQtyD:"Either you have them or not, meals don't use them up.", noQtyTag:"pantry, no quantity",
   tLooseAdded:n=>`${n} added to the pantry, no quantity`,
-  kwTab:{loose:"Food", breakfast:"Breakfast", snack:"Snacks", drinks:"Drinks", cond:"Seasonings"},
+  kwTab:{loose:"Food", breakfast:"Breakfast", snack:"Snacks", drinks:"Drinks", cond:"Seasonings", other:"Other"},
   addProduct:"Add a product", phFood:"e.g. Frozen fish",
   available:"Available",
   emptyPantryList:"What you bought shows up here, with what's left after planning your meals.",
@@ -552,7 +553,7 @@ const STR = {
   tNameQty:"Enter a name and a quantity above zero", tSaved:"Saved",
   listTitle:"Shopping list", listSub:"Tick products off as they go in the cart.", phList:"e.g. Fish 300g", listAdd:"Product to buy",
   autoCat:"Auto",
-  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up, otherwise it asks you when you finish shopping. Snacks and drinks go to the pantry with no quantity; breakfast, seasonings and home items stay on the list only. The app picks the category; tap the tag to change it.",
+  listHint:"If you type the quantity in the name (300g, 1kg, 1.5 lt, 6 pcs, x2) the app picks it up, otherwise it asks you when you finish shopping. Snacks and drinks go to the pantry with no quantity; breakfast, seasonings, home and other items stay on the list only. The app picks the category; tap the tag to change it.",
   emptyList:"The list is empty. Add what you want to buy, then tick items off at the store.",
   toBuy:"To buy", inCart:"In the cart", endShop:n=>`Finish shopping · ${n} ${n===1?"item":"items"}`,
   check:"Tick", uncheck:"Untick", changeCat:"Change category of", removeFromList:"Remove from list", tListRemoved:"Removed from the list",
@@ -562,7 +563,7 @@ const STR = {
   when:"When", nextShop:"Next shopping", laterIcon:"For later",
   tMovedNext:n=>`${n} is on the next shopping`, tMovedLater:n=>`${n} is in “For later”`, emptyNext:"Nothing on the list for the next shopping yet.",
   tWriteName:"Type the product name",
-  endLabel:"Finish shopping", endT:n=>`Finish shopping with ${n===1?"1 item":n+" items"}?`, plainEndHint:"Food, snacks and drinks go to the pantry, only food with a quantity. Breakfast, seasonings and home items just leave the list.", qtyToSet:"quantity needed",
+  endLabel:"Finish shopping", endT:n=>`Finish shopping with ${n===1?"1 item":n+" items"}?`, plainEndHint:"Food, snacks and drinks go to the pantry, only food with a quantity. Breakfast, seasonings, home and other items just leave the list.", qtyToSet:"quantity needed",
   willAsk:n=>n===1?"I'll ask you the quantity or weight of one item.":`I'll ask you the quantity or weight of ${n} items, one at a time.`,
   productOf:(a,b)=>`Item ${a} of ${b}`, howMuch:n=>`What quantity of ${n} did you buy?`,
   lastStep:"Last step", howMuchSpent:"How much did you spend?", receiptTotal:"Receipt total €", phReceipt:"e.g. 34.80 (optional)",
@@ -613,8 +614,8 @@ const STR = {
   carryPiggyHint:"What's left over each week goes into the savings jar, which you'll find in Stats. If you overspend, the difference is taken off. It starts from this week.",
   goalName:"Goal (optional)", phGoal:"e.g. Holiday", goalAmount:"Target amount €", phGoalAmt:"e.g. 300", saveGoal:"Save goal", tGoalSaved:"Goal saved",
   sKw:"Products without quantity", sKwD:"When you write these on the list the app puts them in the right category. Longer names count too, like “Soy milk” or “Blueberry skyr”.",
-  kwD:{loose:"Food you don't weigh, like bread. It stays in the pantry with the food but with no quantity, you aren't asked how much you bought and it never goes into meal ingredients.", breakfast:"They stay on the list only and leave it when you finish shopping.", snack:"When you finish shopping they go to the Snacks section of the pantry, with no quantity.", drinks:"When you finish shopping they go to the Drinks section of the pantry, with no quantity.", cond:"They stay on the list only and never go to the pantry or into meals."},
-  phKw:{loose:"e.g. Wraps", breakfast:"e.g. Biscuits", snack:"e.g. Greek yogurt", drinks:"e.g. Iced tea", cond:"e.g. Curry"},
+  kwD:{loose:"Food you don't weigh, like bread. It stays in the pantry with the food but with no quantity, you aren't asked how much you bought and it never goes into meal ingredients.", breakfast:"They stay on the list only and leave it when you finish shopping.", snack:"When you finish shopping they go to the Snacks section of the pantry, with no quantity.", drinks:"When you finish shopping they go to the Drinks section of the pantry, with no quantity.", cond:"They stay on the list only and never go to the pantry or into meals.", other:"Anything that doesn't fit the other sections, like cat food or chewing gum. It stays on the list only and leaves it when you finish shopping."},
+  phKw:{loose:"e.g. Wraps", breakfast:"e.g. Biscuits", snack:"e.g. Greek yogurt", drinks:"e.g. Iced tea", cond:"e.g. Curry", other:"e.g. Batteries"},
   kwElsewhere:c=>`Already on the ${c} list`, tKwAdded:c=>`${c} list updated`, tKwRemoved:c=>`Removed from the ${c} list`,
   noBf:"No products.", bfExists:"Already on the list",
   sFavs:"Favourite dishes", sFavsD:"Create them from a meal sheet with “Save as a favourite dish”.", noFavs:"No favourite dishes yet.",
@@ -636,22 +637,23 @@ const LS_KEY = "spesa-pasti-v1";
 const LIST_KEYS = ["items","expenses","meals","list","extras","favs","piggyOut"];
 // Categorie della lista. Gli alimentari stanno in dispensa con la quantità. Merenda / Frutta e Bibite stanno
 // in dispensa senza quantità. Colazione, Condimenti e Casa restano solo nella lista.
-const CATS = ["food","snack","drinks","breakfast","cond","home"];
+const CATS = ["food","snack","drinks","breakfast","cond","home","other"];
 const KEPT = ["snack","drinks"];
 // Alimentari senza quantità (come il pane): stanno in dispensa tra gli alimentari ma senza quantità e fuori dai pasti.
 // In lista restano "Cibo", è il nome a decidere. Nella dispensa la loro categoria interna è "loose".
 const ITEM_CATS = [...CATS, "loose"];
 // Categorie riconosciute dal nome con gli elenchi modificabili in Opzioni.
-const KW_CATS = ["loose","breakfast","snack","drinks","cond"];
+const KW_CATS = ["loose","breakfast","snack","drinks","cond","other"];
 const DEFAULT_KW = {
   loose:["Pane"],
   breakfast:["Arance","Latte","Burro d'arachidi","Marmellata"],
   snack:["Banane","Barrette proteiche","Skyr"],
   drinks:["Coca Zero","Coca Cola","Aranciata","Tè freddo","Birra","Vino","Acqua"],
-  cond:["Aglio","Cipolla","Cipollotto","Scalogno","Erbe aromatiche","Prezzemolo","Basilico","Rosmarino","Salvia","Timo","Origano","Menta","Alloro","Erba cipollina","Peperoncino","Zenzero","Olio","Aceto","Sale","Pepe","Spezie"]
+  cond:["Aglio","Cipolla","Cipollotto","Scalogno","Erbe aromatiche","Prezzemolo","Basilico","Rosmarino","Salvia","Timo","Origano","Menta","Alloro","Erba cipollina","Peperoncino","Zenzero","Olio","Aceto","Sale","Pepe","Spezie"],
+  other:["Cibo per gatti","Crocchette per gatti","Umido per gatti","Snack per gatti","Lettiera","Gomme","Chewing gum"]
 };
 const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, monthStart:1, carry:"off", carryFrom:null,
-  loose:[...DEFAULT_KW.loose], breakfast:[...DEFAULT_KW.breakfast], snack:[...DEFAULT_KW.snack], drinks:[...DEFAULT_KW.drinks], cond:[...DEFAULT_KW.cond]});
+  loose:[...DEFAULT_KW.loose], breakfast:[...DEFAULT_KW.breakfast], snack:[...DEFAULT_KW.snack], drinks:[...DEFAULT_KW.drinks], cond:[...DEFAULT_KW.cond], other:[...DEFAULT_KW.other]});
 const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
   items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, monthBudgets:{}, settings:blankSettings()});
 function normalize(s){
@@ -669,6 +671,8 @@ function normalize(s){
   if(!o.mig.cats1){ markCats(o); o.mig.cats1 = true; }
   // Il pane non si pesa più: resta in dispensa senza quantità.
   if(!o.mig.loose1){ markCats(o); o.mig.loose1 = true; }
+  // Altro (cibo per la gatta, gomme...): resta solo nella lista.
+  if(!o.mig.other1){ markCats(o); o.mig.other1 = true; }
   // Ottobre 2026: budget mensile ridotto (spesa 240 €, extra 234 €), modificabile in Opzioni.
   // Il mese di budget parte dal 14 (arrivo dello stipendio), modificabile in Opzioni.
   if(!o.mig.ms14){ o.settings.monthStart = 14; o.mig.ms14 = true; }
@@ -1049,7 +1053,7 @@ const TAB_ICONS = {
    7. SCHERMATE
    ========================================================= */
 const pagehead = (h, p) => `<div class="pagehead"><h1>${h}</h1>${p ? `<p>${p}</p>` : ""}</div>`;
-const CHIP_CLASS = {food:"", snack:"fruit", drinks:"drink", breakfast:"coin", cond:"neutral", home:"home"};
+const CHIP_CLASS = {food:"", snack:"fruit", drinks:"drink", breakfast:"coin", cond:"neutral", home:"home", other:"other"};
 const catChip = c => `<span class="chip ${CHIP_CLASS[c] || ""}">${T().catS[c]}</span>`;
 const slotLabel = s => s==="pranzo" ? T().lunch : T().dinner;
 
