@@ -287,7 +287,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 .sheet .head{display:grid;gap:4px}
 .ingr{display:grid;grid-template-columns:minmax(0,1fr) 96px 40px;gap:6px;align-items:end}
 .ingr .ingleft{grid-column:1/-1;margin-top:-2px}
-.ingr.plan{grid-template-columns:minmax(0,1fr) 40px}
+.ingr.plan,.ingr.noq{grid-template-columns:minmax(0,1fr) 40px}
 .ingr.plan .planq,.ingr.plan .planfoot{grid-column:1/-1}
 .planq{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .planfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px}
@@ -311,6 +311,13 @@ input::placeholder{color:var(--muted);opacity:.8}
 .pitem.on b{color:var(--accent)}
 .tags{display:flex;flex-wrap:wrap;gap:8px}
 .seg.g2{grid-auto-flow:row;grid-template-columns:1fr 1fr}
+.modecard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--fg)}
+.modecard .mtxt{flex:1;min-width:0;display:grid;gap:3px}
+.modecard.on{border-color:var(--accent);background:var(--accent-soft)}
+.switch{flex:none;width:52px;height:32px;border-radius:99px;background:var(--sunk);position:relative;transition:background .2s;box-shadow:inset 0 0 0 1px var(--line)}
+.switch i{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.modecard.on .switch{background:var(--accent);box-shadow:none}
+.modecard.on .switch i{transform:translateX(20px)}
 .lopts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:end}
 .lopts .checkrow{min-height:50px;gap:10px;line-height:1.2}
 .seg.g3{grid-auto-flow:row;grid-template-columns:repeat(3,1fr)}
@@ -357,7 +364,7 @@ input::placeholder{color:var(--muted);opacity:.8}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "1.10";
+const APP_VERSION = "1.11";
 
 /* =========================================================
    1. TESTI (italiano / inglese)
@@ -408,6 +415,13 @@ const STR = {
   boughtAgo:n=>n===0?"Comprato oggi":n===1?"Comprato ieri":`Comprato ${n} giorni fa`, onList:"Già in lista", toListBtn:"Ricompra", finished:"Finito",
   tKeptAdded:(n,c)=>`${n} in ${c}`, tKeptDone:n=>`${n} finito`, tToList:n=>`${n} in lista`,
   tNotKept:(n,c)=>`${n} è in ${c}, non si tiene in dispensa`,
+  homeModeT:"Modalità casa", homeModeOn:"Attiva. Niente quantità a fine spesa e nei piatti, gli alimentari vanno in dispensa senza quantità.", homeModeOff:"Quando la attivi, a fine spesa e nei piatti non ti servono le quantità.",
+  tHomeOn:"Modalità casa attiva", tHomeOff:"Modalità casa disattivata",
+  listHintHome:"Merenda e bibite vanno nelle loro sezioni della dispensa. Colazione, condimenti, casa e altro restano solo in lista. La categoria la trova l'app, tocca l'etichetta per cambiarla.",
+  homeEndHint:"Modalità casa. Gli alimentari, la merenda e le bibite vanno in dispensa senza quantità, il resto esce solo dalla lista.",
+  homePantryHint:"Modalità casa attiva, i prodotti si aggiungono senza quantità.", withQtyT:"Con quantità", emptyFree:"Gli alimentari che compri in modalità casa finiscono qui, senza quantità.",
+  homeMealNote:"Modalità casa, gli ingredienti non hanno quantità.", mealHintHome:"In modalità casa gli ingredienti non vengono scalati dalla dispensa. Quelli provvisori si collegano da soli quando li compri.",
+  noQtyShort:"senza quantità", inPantryFree:"In dispensa, senza quantità",
   noQtyT:"Senza quantità", noQtyD:"Ci sono o non ci sono, non vengono scalati dai pasti.", noQtyTag:"in dispensa, senza quantità",
   tLooseAdded:n=>`${n} in dispensa, senza quantità`,
   kwTab:{loose:"Alimentari", breakfast:"Colazione", snack:"Merenda", drinks:"Bibite", cond:"Condimenti", other:"Altro"},
@@ -539,6 +553,13 @@ const STR = {
   boughtAgo:n=>n===0?"Bought today":n===1?"Bought yesterday":`Bought ${n} days ago`, onList:"On the list", toListBtn:"Rebuy", finished:"Used up",
   tKeptAdded:(n,c)=>`${n} added to ${c}`, tKeptDone:n=>`${n} used up`, tToList:n=>`${n} added to the list`,
   tNotKept:(n,c)=>`${n} is in ${c}, not kept in the pantry`,
+  homeModeT:"Home mode", homeModeOn:"On. No quantities when you finish shopping or in meals; food goes to the pantry with no quantity.", homeModeOff:"When it's on, you don't need quantities when you finish shopping or in meals.",
+  tHomeOn:"Home mode on", tHomeOff:"Home mode off",
+  listHintHome:"Snacks and drinks go to their pantry sections. Breakfast, seasonings, home and other items stay on the list only. The app picks the category; tap the tag to change it.",
+  homeEndHint:"Home mode. Food, snacks and drinks go to the pantry with no quantity; the rest just leaves the list.",
+  homePantryHint:"Home mode is on, products are added with no quantity.", withQtyT:"With quantity", emptyFree:"Food you buy in home mode lands here, with no quantity.",
+  homeMealNote:"Home mode, ingredients have no quantity.", mealHintHome:"In home mode ingredients aren't taken out of the pantry. Provisional ones link on their own once you buy them.",
+  noQtyShort:"no quantity", inPantryFree:"In the pantry, no quantity",
   noQtyT:"No quantity", noQtyD:"Either you have them or not, meals don't use them up.", noQtyTag:"pantry, no quantity",
   tLooseAdded:n=>`${n} added to the pantry, no quantity`,
   kwTab:{loose:"Food", breakfast:"Breakfast", snack:"Snacks", drinks:"Drinks", cond:"Seasonings", other:"Other"},
@@ -652,7 +673,7 @@ const DEFAULT_KW = {
   cond:["Aglio","Cipolla","Cipollotto","Scalogno","Erbe aromatiche","Prezzemolo","Basilico","Rosmarino","Salvia","Timo","Origano","Menta","Alloro","Erba cipollina","Peperoncino","Zenzero","Olio","Aceto","Sale","Pepe","Spezie"],
   other:["Cibo per gatti","Crocchette per gatti","Umido per gatti","Snack per gatti","Lettiera","Gomme","Chewing gum"]
 };
-const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, monthStart:1, carry:"off", carryFrom:null,
+const blankSettings = () => ({theme:"system", lang:"it", units:"metric", weekStart:1, monthStart:1, carry:"off", carryFrom:null, homeMode:false,
   loose:[...DEFAULT_KW.loose], breakfast:[...DEFAULT_KW.breakfast], snack:[...DEFAULT_KW.snack], drinks:[...DEFAULT_KW.drinks], cond:[...DEFAULT_KW.cond], other:[...DEFAULT_KW.other]});
 const blank = () => ({v:1, weekly:80, monthly:320, extraWeekly:78, extraMonthly:312,
   items:[], expenses:[], meals:[], list:[], extras:[], favs:[], piggyOut:[], goal:null, monthBudgets:{}, settings:blankSettings()});
@@ -838,7 +859,17 @@ const itemById = id => state.items.find(i => i.id===id);
 const catOf = i => ITEM_CATS.includes(i.cat) ? i.cat : "food";
 const isFood = i => catOf(i)==="food";
 function used(id, exceptMealId){ let s = 0; for(const m of state.meals) if(m.id!==exceptMealId) for(const g of m.ing) if(g.itemId===id) s += +g.qty || 0; return s; }
-function remaining(it, exceptMealId){ if(it.qty==null) return 0; return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000); }
+// Modalità casa: a fine spesa e nei piatti niente quantità. Gli alimentari comprati così stanno in dispensa
+// senza quantità (qty null): ci sono finché non tocchi Finito, e i pasti non li scalano.
+const homeMode = () => !!state.settings.homeMode;
+const isFree = i => isFood(i) && i.qty==null;
+function remaining(it, exceptMealId){
+  if(it.gone) return 0;
+  if(it.qty==null) return isFood(it) ? Infinity : 0;
+  return Math.max(0, Math.round((it.qty - used(it.id, exceptMealId))*10000)/10000);
+}
+// Quantità di un ingrediente nei pasti, vuota se non c'è.
+const mqsOpt = (q, u) => q>0 && u ? " "+mqs(q, u) : "";
 const spentShop = (a,b) => state.expenses.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
 const spentExtra = (a,b) => state.extras.filter(e => e.date>=a && e.date<=b).reduce((s,e) => s+e.amount, 0);
 const findInList = name => state.list.find(l => !l.checked && nameScore(l.name, name)>=2);
@@ -854,12 +885,15 @@ function addToList(name, cat, qty, unit, need){
   return true;
 }
 // Ingredienti provvisori di un elenco di pasti, sommati per nome (es. pollo di due pasti diversi).
+// Quelli senza quantità (modalità casa) si uniscono a quelli con la quantità dello stesso nome.
 function aggregatePlanned(ings){
-  const out = [], byKey = {};
+  const out = [];
   for(const g of ings){
-    const k = nameTokens(g.name).join(" ")+"|"+DIM[g.unit];
-    if(byKey[k]) byKey[k].qty += g.qty*F[g.unit]/F[byKey[k].unit];
-    else out.push(byKey[k] = {name:g.name, qty:+g.qty, unit:g.unit});
+    const nk = nameTokens(g.name).join(" "), has = g.qty>0 && !!g.unit;
+    const e = has ? out.find(x => x.nk===nk && x.qty>0 && DIM[x.unit]===DIM[g.unit]) || out.find(x => x.nk===nk && !(x.qty>0)) : out.find(x => x.nk===nk);
+    if(!e){ out.push({nk, name:g.name, qty:has ? +g.qty : null, unit:has ? g.unit : null}); continue; }
+    if(!has) continue;
+    if(e.qty>0) e.qty += g.qty*F[g.unit]/F[e.unit]; else { e.qty = +g.qty; e.unit = g.unit; }
   }
   return out;
 }
@@ -874,11 +908,16 @@ function linkPlanned(){
   const meals = state.meals.filter(m => m.date>=today && m.ing.some(g => g.plan)).sort((a,b) => a.date.localeCompare(b.date) || slotN(a.slot)-slotN(b.slot));
   for(const m of meals) for(let k = 0; k < m.ing.length; k++){
     const g = m.ing[k]; if(!g.plan) continue;
-    const best = state.items.filter(i => isFood(i) && DIM[i.unit]===DIM[g.unit] && !m.ing.some(x => x.itemId===i.id))
-      .map(i => ({i, s:nameScore(i.name, g.name), need:g.qty*F[g.unit]/F[i.unit], rem:remaining(i)}))
-      .filter(x => x.s>=2 && x.rem >= x.need - 1e-6)
-      .sort((x,y) => y.s-x.s || y.rem-x.rem)[0];
-    if(best) m.ing[k] = {itemId:best.i.id, qty:Math.round(best.need*10000)/10000};
+    // Senza quantità da una parte o dall'altra (modalità casa) basta il nome, e il collegamento resta senza quantità.
+    const best = state.items.filter(i => isFood(i) && !m.ing.some(x => x.itemId===i.id))
+      .map(i => {
+        const noq = i.qty==null || !(g.qty>0) || !g.unit;
+        const need = noq ? null : DIM[i.unit]===DIM[g.unit] ? g.qty*F[g.unit]/F[i.unit] : NaN;
+        return {i, s:nameScore(i.name, g.name), need, rem:remaining(i)};
+      })
+      .filter(x => x.s>=2 && x.rem>0 && !Number.isNaN(x.need) && (x.need==null || x.rem >= x.need - 1e-6))
+      .sort((x,y) => y.s-x.s || (x.i.qty==null) - (y.i.qty==null) || (y.rem>x.rem ? 1 : y.rem<x.rem ? -1 : 0))[0];
+    if(best) m.ing[k] = {itemId:best.i.id, qty:best.need==null ? null : Math.round(best.need*10000)/10000};
   }
 }
 
@@ -975,22 +1014,28 @@ function nameScore(a, b){
 // Piatti preferiti.
 const findFav = name => name ? state.favs.find(f => sameName(f.name, name)) : null;
 function saveFav(name, ing){
-  const list = ing.map(g => { if(g.plan) return {name:g.name, qty:g.qty, unit:g.unit}; const it = itemById(g.itemId); return it ? {name:it.name, qty:Math.round(g.qty*10000)/10000, unit:it.unit} : null; }).filter(Boolean);
+  const list = ing.map(g => { if(g.plan) return {name:g.name, qty:g.qty>0 ? g.qty : null, unit:g.qty>0 ? g.unit : null}; const it = itemById(g.itemId); return it ? {name:it.name, qty:g.qty>0 ? Math.round(g.qty*10000)/10000 : null, unit:g.qty>0 ? it.unit : null} : null; }).filter(Boolean);
   const f = findFav(name);
   if(f){ f.name = name; f.ing = list; } else state.favs.push({id:uid(), name, ing:list});
 }
 // Abbina gli ingredienti di un preferito alla dispensa: righe pronte e cosa manca.
 function planFav(f){
-  const rows = [], missing = [], planned = [];
+  const home = homeMode(), rows = [], missing = [], planned = [];
   for(const g of f.ing){
+    const gq = g.qty>0 && g.unit ? g.qty : null;
     const cands = state.items.filter(i => isFood(i) && remaining(i)>0 && !rows.some(r => r.itemId===i.id))
-      .map(i => ({i, s:nameScore(i.name, g.name), d:DIM[i.unit]===DIM[g.unit] ? 1 : 0})).filter(x => x.s>0)
+      .map(i => ({i, s:nameScore(i.name, g.name), d:i.qty==null || DIM[i.unit]===DIM[g.unit] ? 1 : 0})).filter(x => x.s>0)
       .sort((x,y) => y.s-x.s || y.d-x.d);
     const it = cands.length ? cands[0].i : null;
-    if(!it){ missing.push({name:g.name, qty:g.qty, unit:g.unit, need:{qty:g.qty, unit:g.unit}}); planned.push({name:g.name, qty:g.qty, unit:g.unit}); continue; }
+    if(!it){
+      missing.push({name:g.name, need:gq && !home ? {qty:gq, unit:g.unit} : null});
+      planned.push({name:g.name, qty:home ? null : gq, unit:home || !gq ? null : g.unit}); continue;
+    }
+    // Modalità casa, prodotto senza quantità o preferito senza quantità: basta l'ingrediente.
+    if(home || it.qty==null || !gq){ rows.push({itemId:it.id, qty:null}); continue; }
     const rem = remaining(it);
     if(DIM[it.unit]!==DIM[g.unit]){ rows.push({itemId:it.id, qty:rem}); continue; }
-    const need = g.qty*F[g.unit]/F[it.unit];
+    const need = gq*F[g.unit]/F[it.unit];
     if(need <= rem + 1e-9) rows.push({itemId:it.id, qty:need});
     else {
       rows.push({itemId:it.id, qty:rem});
@@ -1083,7 +1128,7 @@ function viewWeek_(){
   if(wb.length){
     const notIn = wb.filter(a => !findInList(a.name) || findInList(a.name).later);
     h += `<div class="card tobuycard"><div class="row" style="justify-content:space-between"><b>${t.weekToBuyT}</b><span class="chip coin num">${wb.length}</span></div>
-      <p class="small muted">${wb.map(a => esc(a.name)+" "+mqs(a.qty, a.unit)).join(" · ")}</p>
+      <p class="small muted">${wb.map(a => esc(a.name)+mqsOpt(a.qty, a.unit)).join(" · ")}</p>
       ${notIn.length ? `<button class="btn sm" data-act="weekToList" style="justify-self:start">${t.weekToBuyBtn(notIn.length)}</button>` : `<span class="small muted">${t.weekAllInList}</span>`}</div>`;
   }
   for(let i = 0; i < 7; i++){
@@ -1095,8 +1140,8 @@ function viewWeek_(){
       if(!ms.length) h += `<div class="none">–</div>`;
       for(const m of ms){
         const linked = m.ing.filter(g => !g.plan), planned = m.ing.filter(g => g.plan);
-        const ing = linked.map(g => { const it = itemById(g.itemId); return it ? esc(it.name)+" "+mqs(+g.qty, it.unit) : t.removedIng; }).join(" · ");
-        const buy = planned.map(g => esc(g.name)+" "+mqs(+g.qty, g.unit)).join(" · ");
+        const ing = linked.map(g => { const it = itemById(g.itemId); return it ? esc(it.name)+mqsOpt(+g.qty, it.unit) : t.removedIng; }).join(" · ");
+        const buy = planned.map(g => esc(g.name)+mqsOpt(+g.qty, g.unit)).join(" · ");
         const first = linked[0] && itemById(linked[0].itemId);
         const title = m.name || (first ? first.name : planned[0] ? planned[0].name : t.meal);
         h += `<div class="meal ${planned.length ? "plan" : ""}" data-id="${m.id}"><button class="mt-btn" data-act="editMeal" data-id="${m.id}"><b>${esc(title)}</b>${ing ? `<span>${ing}</span>` : ""}${buy ? `<span class="tobuy">${t.toBuyTag} · ${buy}</span>` : ""}</button>
@@ -1119,11 +1164,14 @@ function viewList(){
     <button data-act="pickCat" data-id="${i.id}" aria-label="${t.changeCat} ${esc(i.name)}">${catChip(catOf(i))}</button>
     <button class="x" data-act="delListItem" data-id="${i.id}" aria-label="${t.removeFromList} ${esc(i.name)}">✕</button>
     ${grip ? `<span class="grip" role="button" aria-label="${t.reorder}">${I.grip}</span>` : ""}</div>`;
-  let h = pagehead(t.listTitle, t.listSub) + `<form class="card form" id="listForm" autocomplete="off">
+  const hm = homeMode();
+  let h = pagehead(t.listTitle, t.listSub) + `<button type="button" class="modecard ${hm ? "on" : ""}" data-act="toggleHome" role="switch" aria-checked="${hm}">
+    <span class="mtxt"><b>${t.homeModeT}</b><span class="small muted">${hm ? t.homeModeOn : t.homeModeOff}</span></span><span class="switch" aria-hidden="true"><i></i></span></button>
+    <form class="card form" id="listForm" autocomplete="off">
     <div class="row"><input id="lName" placeholder="${t.phList}" aria-label="${t.listAdd}"><button class="btn" type="submit" style="flex:none">${t.add}</button></div>
     <div class="lopts"><label class="field"><span>${t.category}</span><select id="lCat">${["auto", ...CATS].map(c => `<option value="${c}" ${(ui.listCat || "auto")===c ? "selected" : ""}>${c==="auto" ? t.autoCat : t.catL[c]}</option>`).join("")}</select></label>
       <label class="checkrow"><input type="checkbox" id="lLaterChk" ${ui.addLater ? "checked" : ""}><span>${t.addToLater}</span></label></div>
-    <p class="hint">${t.listHint}</p></form>`;
+    <p class="hint">${hm ? t.listHintHome : t.listHint}</p></form>`;
   if(!todo.length && !done.length && !later.length) h += `<div class="empty mt"><span class="muted small">${t.emptyList}</span></div>`;
   const movable = todo.length + later.length > 1;
   if(todo.length || later.length) h += `<div class="sechead"><h2>${t.toBuy} <span class="muted num">${todo.length}</span></h2>${movable ? `<span class="small muted">${t.reorderHint}</span>` : ""}</div>`
@@ -1142,7 +1190,12 @@ function viewPantry(){
   let h = pagehead(t.tabPantry, t.pantrySub);
   h += `<div class="seg" style="margin-bottom:12px">${["food", ...KEPT].map(segBtn).join("")}</div>`;
   if(cat!=="food") return h + viewKept(cat);
-  h += `<form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
+  const home = homeMode();
+  h += home ? `<form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
+    <div class="label">${t.addProduct}</div>
+    <div class="row"><input id="itName" placeholder="${t.phFood}" aria-label="${t.name}"><button class="btn" type="submit" style="flex:none">${t.add}</button></div>
+    <p class="hint">${t.homePantryHint}</p></form>`
+  : `<form class="card form" id="itemForm" data-enter="blur" autocomplete="off">
     <div class="label">${t.addProduct}</div>
     <input id="itName" placeholder="${t.phFood}" aria-label="${t.name}">
     <div class="grid2"><label class="field"><span>${t.qty}</span><input id="itQty" inputmode="decimal" placeholder="${t.phQty}"></label>
@@ -1150,14 +1203,20 @@ function viewPantry(){
     <button class="btn" type="submit">${t.add}</button></form>`;
   // I prodotti finiti spariscono dalla dispensa ma restano nei dati, per i pasti già fatti e per l'analisi.
   // Quando li ricompri dalla lista tornano disponibili.
-  const avail = state.items.filter(i => isFood(i) && remaining(i)>0).sort((a,b) => boughtAt(b).localeCompare(boughtAt(a)));
-  h += `<div class="sechead"><h2>${t.available} <span class="muted num">${avail.length}</span></h2></div>`;
-  if(!avail.length) h += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
-  h += `<div class="stack">${avail.map(foodCard).join("")}</div>`;
-  const loose = state.items.filter(i => catOf(i)==="loose").sort((a,b) => a.name.localeCompare(b.name, t.locale));
-  if(loose.length) h += `<div class="sechead" style="margin-top:22px"><h2>${t.noQtyT} <span class="muted num">${loose.length}</span></h2></div>
-    <p class="hint" style="margin:-4px 0 10px">${t.noQtyD}</p><div class="card klist">${loose.map(keptRow).join("")}</div>`;
-  return h;
+  const avail = state.items.filter(i => isFood(i) && i.qty!=null && remaining(i)>0).sort((a,b) => boughtAt(b).localeCompare(boughtAt(a)));
+  let withQ = "";
+  if(!home || avail.length){
+    withQ = `<div class="sechead" ${home ? `style="margin-top:22px"` : ""}><h2>${home ? t.withQtyT : t.available} <span class="muted num">${avail.length}</span></h2></div>`;
+    if(!avail.length) withQ += `<div class="empty"><span class="muted small">${t.emptyPantryList}</span></div>`;
+    withQ += `<div class="stack">${avail.map(foodCard).join("")}</div>`;
+  }
+  // Senza quantità: il pane e gli alimentari comprati in modalità casa.
+  const noQ = state.items.filter(i => !i.gone && (catOf(i)==="loose" || isFree(i))).sort((a,b) => a.name.localeCompare(b.name, t.locale));
+  let freeQ = "";
+  if(noQ.length) freeQ = `<div class="sechead" ${home ? "" : `style="margin-top:22px"`}><h2>${t.noQtyT} <span class="muted num">${noQ.length}</span></h2></div>
+    <p class="hint" style="margin:-4px 0 10px">${t.noQtyD}</p><div class="card klist">${noQ.map(keptRow).join("")}</div>`;
+  else if(home) freeQ = `<div class="sechead"><h2>${t.noQtyT} <span class="muted num">0</span></h2></div><div class="empty"><span class="muted small">${t.emptyFree}</span></div>`;
+  return h + (home ? freeQ + withQ : withQ + freeQ);
 }
 function viewKept(cat){
   const t = T(), items = state.items.filter(i => catOf(i)===cat).sort((a,b) => a.name.localeCompare(b.name, t.locale));
@@ -1179,7 +1238,7 @@ const daysAgo = isoStr => Math.max(0, Math.round((parseIso(iso(new Date())) - pa
 function foodCard(it){
   const t = T(), r = remaining(it), pct = it.qty ? Math.min(100, r/it.qty*100) : 0;
   const uses = state.meals.filter(m => m.ing.some(g => g.itemId===it.id)).sort((a,b) => a.date.localeCompare(b.date) || a.slot.localeCompare(b.slot))
-    .map(m => { const q = m.ing.filter(g => g.itemId===it.id).reduce((s,g) => s + +g.qty, 0); return dayShort(parseIso(m.date))+" "+slotLabel(m.slot).toLowerCase()+" "+mqs(q, it.unit); });
+    .map(m => { const q = m.ing.filter(g => g.itemId===it.id).reduce((s,g) => s + (+g.qty || 0), 0); return dayShort(parseIso(m.date))+" "+slotLabel(m.slot).toLowerCase()+mqsOpt(q, it.unit); });
   const [tq, tu] = toDisp(it.qty, it.unit);
   return `<div class="item ${r<=0 ? "done" : ""}">
     <div class="h"><b>${esc(it.name)}</b><span class="q num"><b>${qfmt(toDisp(r, it.unit)[0])}</b> <span class="muted">/ ${qfmt(tq)} ${ul(tu)}</span></span></div>
@@ -1429,12 +1488,13 @@ function bindForms(){
     const i = $("#lName"); if(i) i.focus();
   });
   on("#itemForm", () => {
-    const name = cap($("#itName").value.trim()), q = num($("#itQty").value), unit = $("#itUnit").value;
+    const name = cap($("#itName").value.trim()), q = $("#itQty") ? num($("#itQty").value) : null, unit = $("#itUnit") ? $("#itUnit").value : "pz";
     // Merenda e bibite vanno nella loro sezione, colazione, condimenti e casa non si tengono in dispensa.
     const c = name ? guessCat(name) : "food";
     if(name && catByName(name, state.settings)==="loose"){ addKept(name, "loose"); blurActive(); commit(); toast(t.tLooseAdded(name)); return; }
     if(KEPT.includes(c)){ addKept(name, c); blurActive(); commit(); toast(t.tKeptAdded(name, t.catL[c])); return; }
     if(c!=="food"){ toast(t.tNotKept(name, t.catL[c])); return; }
+    if(homeMode()){ if(!name){ toast(t.tWriteName); return; } addFree(name); blurActive(); commit(); toast(t.tLooseAdded(name)); return; }
     if(!name || !(q>0)){ toast(t.tNameQty); return; }
     state.items.push({id:uid(), name, qty:q, unit, cat:"food", added:new Date().toISOString()});
     blurActive(); commit(); toast(t.tAdded(name));
@@ -1553,12 +1613,13 @@ function openMeal(date, slot, mealId){
     ${favChips}
     <label class="field"><span>${t.mealName}</span><input id="mName" placeholder="${t.phMeal}" value="${meal ? esc(meal.name) : ""}"></label>
     <div class="label">${t.ingredients}</div>
+    ${homeMode() ? `<p class="hint" style="margin-top:-4px">${t.homeMealNote}</p>` : ""}
     <div class="stack" id="ingRows"></div>
     <p class="hint" id="ingEmpty" hidden>${t.pantryEmptyHint}</p>
     <button type="button" class="addingr" id="addRow">${I.plus}<span>${t.addIng}</span></button>
     <div id="missBox"></div>
     <label class="checkrow"><input type="checkbox" id="mFav"><span>${fav ? t.updateFav : t.saveFav}</span></label>
-    <p class="hint">${t.mealHint}</p>
+    <p class="hint">${homeMode() ? t.mealHintHome : t.mealHint}</p>
     ${meal ? `<button type="button" class="btn danger" id="mDel">${t.deleteMeal}</button>` : ""}
     ${sheetButtons(meal ? t.save : t.add)}`, {form:true, blurEnter:true});
   const rows = $("#ingRows", el);
@@ -1572,7 +1633,7 @@ function openMeal(date, slot, mealId){
     wrap.innerHTML = `<div class="picker" role="dialog" aria-modal="true" aria-label="${t.pickT}"><div class="grab"></div>
       <div class="phead"><h2>${t.pickT}</h2><button type="button" class="x" data-close aria-label="${t.close}">✕</button></div>
       <div class="plist">${onPlan ? `<button type="button" class="pitem plan" data-plan="1"><b>✎ ${t.notInPantry}</b><span>${t.notInPantryD}</span></button>` : ""}
-        ${opts.length ? opts.map(i => `<button type="button" class="pitem ${i.id===current ? "on" : ""}" data-id="${i.id}"><b>${esc(i.name)}</b><span class="num">${t.left} ${mqs(avail(i), i.unit)}</span></button>`).join("") : `<p class="hint" style="padding:12px 0">${t.pickEmpty}</p>`}</div></div>`;
+        ${opts.length ? opts.map(i => `<button type="button" class="pitem ${i.id===current ? "on" : ""}" data-id="${i.id}"><b>${esc(i.name)}</b><span class="num">${i.qty==null ? t.noQtyShort : t.left+" "+mqs(avail(i), i.unit)}</span></button>`).join("") : `<p class="hint" style="padding:12px 0">${t.pickEmpty}</p>`}</div></div>`;
     $("#sheetRoot").appendChild(wrap);
     swipeToClose($(".picker", wrap), wrap, el => el.closest(".plist"), () => wrap.remove());
     wrap.addEventListener("click", e => {
@@ -1585,14 +1646,20 @@ function openMeal(date, slot, mealId){
   function focusQty(q){ q.focus(); try{ q.setSelectionRange(0, q.value.length); }catch(e){} }
   const selectAllOnFocus = q => q.addEventListener("focus", () => setTimeout(() => { try{ q.setSelectionRange(0, q.value.length); }catch(e){} }, 0));
   function place(div, before){ if(before) rows.insertBefore(div, before); else rows.appendChild(div); }
+  // Senza quantità (prodotto senza quantità o modalità casa) la riga ha solo l'ingrediente.
+  // In modalità casa la quantità già salvata in un pasto resta com'era, finché non cambi ingrediente.
   function setRow(div, itemId, qItem, focus){
-    const it = itemById(itemId), av = avail(it);
+    const it = itemById(itemId), av = avail(it), free = it.qty==null, noq = free || homeMode();
     div.dataset.item = itemId;
+    div.dataset.q = qItem>0 && !free ? qItem : "";
+    div.classList.toggle("noq", noq);
     $(".pickbtn b", div).textContent = it.name;
+    $(".qf", div).hidden = noq;
+    $(".ingleft", div).textContent = free ? t.inPantryFree : t.inPantryLeft(mqs(av, it.unit), roundMeal(av, it.unit));
+    if(noq) return;
     $(".ulab", div).textContent = t.qtyIn(ul(mealUnit(it.unit)));
-    $(".ingleft", div).textContent = t.inPantryLeft(mqs(av, it.unit), roundMeal(av, it.unit));
     const q = $("input", div);
-    q.value = qfmt(roundMeal(qItem!=null ? qItem : defaultPortion(it, av), it.unit));
+    q.value = qfmt(roundMeal(qItem>0 ? qItem : defaultPortion(it, av), it.unit));
     if(focus) focusQty(q);
   }
   // Riga di un ingrediente della dispensa.
@@ -1600,7 +1667,7 @@ function openMeal(date, slot, mealId){
     const div = document.createElement("div");
     div.className = "ingr";
     div.innerHTML = `<div class="field"><span>${t.ingredient}</span><button type="button" class="pickbtn"><b></b>${I.down}</button></div>
-      <label class="field"><span class="ulab"></span><input inputmode="decimal" enterkeyhint="done" aria-label="${t.qty}"></label>
+      <label class="field qf"><span class="ulab"></span><input inputmode="decimal" enterkeyhint="done" aria-label="${t.qty}"></label>
       <button type="button" class="x rm" aria-label="${t.removeIng}">✕</button><span class="hint ingleft"></span>`;
     place(div, before);
     selectAllOnFocus($("input", div));
@@ -1612,26 +1679,28 @@ function openMeal(date, slot, mealId){
   }
   // Riga di un ingrediente provvisorio: nome, quantità e unità scritti a mano.
   function addPlanRow(g, focus, before){
+    const home = homeMode();
     const units = state.settings.units==="imperial" ? ["oz","fl oz","pz"] : ["g","ml","pz"];
     const u = g && g.unit ? mealUnit(g.unit) : units[0];
     const v = g && g.qty>0 ? roundMeal(g.qty, g.unit) : u==="pz" ? 1 : (u==="oz" || u==="fl oz") ? 3.5 : 100;
     const div = document.createElement("div");
     div.className = "ingr plan";
+    if(home && g && g.qty>0 && g.unit){ div.dataset.q = g.qty; div.dataset.u = g.unit; }
     div.innerHTML = `<label class="field"><span>${t.planName}</span><input class="pname" placeholder="${t.phPlanName}" value="${esc(g && g.name || "")}"></label>
       <button type="button" class="x rm" aria-label="${t.removeIng}">✕</button>
-      <div class="planq"><label class="field"><span>${t.qty}</span><input class="pqty" inputmode="decimal" enterkeyhint="done" value="${qfmt(v)}"></label>
-        <label class="field"><span>${t.unit}</span><select class="punit">${units.map(x => `<option value="${x}" ${x===u ? "selected" : ""}>${ul(x)}</option>`).join("")}</select></label></div>
+      ${home ? "" : `<div class="planq"><label class="field"><span>${t.qty}</span><input class="pqty" inputmode="decimal" enterkeyhint="done" value="${qfmt(v)}"></label>
+        <label class="field"><span>${t.unit}</span><select class="punit">${units.map(x => `<option value="${x}" ${x===u ? "selected" : ""}>${ul(x)}</option>`).join("")}</select></label></div>`}
       <div class="planfoot"><span class="chip coin">${t.toBuyTag}</span>${pool.length ? `<button type="button" class="link small pfrom">${t.pickFromPantry}</button>` : ""}</div>`;
     place(div, before);
-    selectAllOnFocus($(".pqty", div));
+    if(!home) selectAllOnFocus($(".pqty", div));
     $(".rm", div).onclick = () => { div.remove(); refresh(); };
     const pf = $(".pfrom", div);
     if(pf) pf.onclick = () => openPicker(null, null, id => {
-      const it = itemById(id), qd = num($(".pqty", div).value), pu = $(".punit", div).value;
-      const qItem = qd>0 && DIM[pu]===DIM[it.unit] ? Math.min(qd*F[pu]/F[it.unit], avail(it)) : null;
+      const it = itemById(id), qd = home ? null : num($(".pqty", div).value), pu = home ? null : $(".punit", div).value;
+      const qItem = qd>0 && it.qty!=null && DIM[pu]===DIM[it.unit] ? Math.min(qd*F[pu]/F[it.unit], avail(it)) : null;
       addRow(id, qItem, true, div); div.remove(); refresh();
     });
-    if(focus){ const n = $(".pname", div); if(n.value) focusQty($(".pqty", div)); else n.focus(); }
+    if(focus){ const n = $(".pname", div); if(n.value && !home) focusQty($(".pqty", div)); else n.focus(); }
     refresh();
   }
   function showMissing(missing){
@@ -1666,14 +1735,22 @@ function openMeal(date, slot, mealId){
     const name = $("#mName", el).value.trim(), wantFav = $("#mFav", el).checked, ing = [], tot = {};
     for(const div of rows.children){
       if(div.classList.contains("plan")){
-        const pn = cap($(".pname", div).value.trim()), pv = num($(".pqty", div).value);
+        const pn = cap($(".pname", div).value.trim()), pq = $(".pqty", div);
         if(!pn){ toast(t.planNeedsName); return; }
+        if(!pq){ ing.push({name:pn, qty:div.dataset.q ? +div.dataset.q : null, unit:div.dataset.u || null, plan:true}); continue; }
+        const pv = num(pq.value);
         if(!(pv>0)){ toast(t.tEachQty); return; }
         ing.push({name:pn, qty:pv, unit:$(".punit", div).value, plan:true});
         continue;
       }
-      const it = itemById(div.dataset.item), v = num($("input", div).value);
+      const it = itemById(div.dataset.item);
       if(!it) continue;
+      if($(".qf", div).hidden){
+        const q = div.dataset.q ? +div.dataset.q : null;
+        if(q>0) tot[it.id] = (tot[it.id]||0) + q;
+        ing.push({itemId:it.id, qty:q}); continue;
+      }
+      const v = num($("input", div).value);
       if(!(v>0)){ toast(t.tEachQty); return; }
       const q = fromMeal(v, it.unit);
       tot[it.id] = (tot[it.id]||0) + q; ing.push({itemId:it.id, qty:q});
@@ -1681,7 +1758,7 @@ function openMeal(date, slot, mealId){
     if(!name && !ing.length){ toast(t.mealNeedsSomething); return; }
     if(wantFav && !name){ toast(t.favNeedsName); return; }
     for(const id in tot){ const it = itemById(id), av = avail(it); if(tot[id] > av + Math.max(1e-6, av*0.002)){ toast(t.onlyLeft(it.name, mqs(av, it.unit), roundMeal(av, it.unit))); return; } }
-    for(const g of ing){ if(g.plan) continue; const av = avail(itemById(g.itemId)); if(tot[g.itemId] > av) g.qty *= av/tot[g.itemId]; g.qty = Math.round(g.qty*10000)/10000; }
+    for(const g of ing){ if(g.plan || g.qty==null) continue; const av = avail(itemById(g.itemId)); if(tot[g.itemId] > av) g.qty *= av/tot[g.itemId]; g.qty = Math.round(g.qty*10000)/10000; }
     if(meal){ meal.name = name; meal.ing = ing; } else state.meals.push({id:uid(), date, slot, name, ing});
     if(wantFav) saveFav(name, ing);
     blurActive(); closeSheet(); commit();
@@ -1954,8 +2031,10 @@ function openPiggyOut(){
 function openEndShop(){
   const t = T(), sel = state.list.filter(i => i.checked).map(i => ({...i}));
   if(!sel.length) return;
+  const home = homeMode();
   const isLoose = i => catOf(i)==="food" && catByName(i.name, state.settings)==="loose";
-  const missing = sel.filter(i => !(i.qty>0) && catOf(i)==="food" && !isLoose(i));
+  // In modalità casa non si chiede nessuna quantità.
+  const missing = home ? [] : sel.filter(i => !(i.qty>0) && catOf(i)==="food" && !isLoose(i));
   const total = missing.length + 1;
   let step = -1;
   const bar = cur => `<div class="steps">${Array.from({length:total}, (_,k) => `<i class="${k<=cur ? "on" : ""}"></i>`).join("")}</div>`;
@@ -1963,10 +2042,10 @@ function openEndShop(){
     let body;
     if(step===-1){
       const plainN = sel.filter(i => catOf(i)!=="food").length;
-      const where = i => catOf(i)!=="food" ? t.catL[catOf(i)] : isLoose(i) ? t.noQtyTag : i.qty>0 ? qs(i.qty, i.unit) : t.qtyToSet;
+      const where = i => catOf(i)!=="food" ? t.catL[catOf(i)] : isLoose(i) || home ? t.noQtyTag : i.qty>0 ? qs(i.qty, i.unit) : t.qtyToSet;
       body = `<div class="head"><div class="label">${t.endLabel}</div><h2>${t.endT(sel.length)}</h2></div>
         <ul class="sum">${sel.map(i => `<li>${esc(i.name)} <span class="muted num">${where(i)}</span></li>`).join("")}</ul>
-        ${plainN ? `<p class="hint">${t.plainEndHint}</p>` : ""}
+        ${home ? `<p class="hint">${t.homeEndHint}</p>` : plainN ? `<p class="hint">${t.plainEndHint}</p>` : ""}
         ${missing.length ? `<p class="hint">${t.willAsk(missing.length)}</p>` : ""}
         ${sheetButtons(t.confirm)}`;
     } else if(step < missing.length){
@@ -2000,6 +2079,7 @@ function openEndShop(){
     for(const i of sel){
       const c = catOf(i);
       if(isLoose(i)){ addKept(i.name, "loose"); nFood++; }
+      else if(c==="food" && home){ addFree(i.name); nFood++; }
       else if(c==="food"){ const m = missing.find(x => x.id===i.id) || i; addToPantry(i.name, m.qty, m.unit || "pz"); nFood++; }
       else if(KEPT.includes(c)){ addKept(i.name, c); nFood++; }
     }
@@ -2010,6 +2090,22 @@ function openEndShop(){
   }
   show();
 }
+// Alimentari comprati in modalità casa: uno per nome, senza quantità. Se c'è già si aggiorna solo la data.
+function addFree(name){
+  const ex = state.items.find(i => isFree(i) && !i.gone && nameScore(i.name, name)>=2), now = new Date().toISOString();
+  if(ex) ex.bought = now;
+  else state.items.push({id:uid(), name, qty:null, unit:"pz", cat:"food", added:now});
+}
+// Prodotto senza quantità finito. Gli alimentari usati nei pasti restano nei dati (per i pasti passati),
+// nei pasti di oggi e dei giorni dopo tornano da comprare.
+function finishNoQty(it){
+  if(isFood(it)){
+    const today = iso(new Date());
+    state.meals.forEach(m => { if(m.date>=today) m.ing = m.ing.map(g => g.itemId===it.id ? {name:it.name, qty:null, unit:null, plan:true} : g); });
+    if(state.meals.some(m => m.ing.some(g => g.itemId===it.id))){ it.gone = true; return; }
+  }
+  state.items = state.items.filter(i => i.id!==it.id);
+}
 // Merenda e bibite: un solo prodotto per nome, senza quantità. Se c'è già si aggiorna solo la data.
 function addKept(name, cat){
   const ex = state.items.find(i => catOf(i)===cat && nameScore(i.name, name)>=2), now = new Date().toISOString();
@@ -2018,7 +2114,7 @@ function addKept(name, cat){
 }
 // Alimentari: colazione, condimenti e casa restano nella lista e non entrano in dispensa.
 function addToPantry(name, qty, unit){
-  const ex = state.items.find(i => isFood(i) && sameName(i.name, name) && DIM[i.unit]===DIM[unit]);
+  const ex = state.items.find(i => isFood(i) && i.qty!=null && sameName(i.name, name) && DIM[i.unit]===DIM[unit]);
   if(ex){
     ex.bought = new Date().toISOString();
     if(qty>0) ex.qty = Math.round(((ex.qty || 0) + qty*F[unit]/F[ex.unit])*1000)/1000;
@@ -2072,7 +2168,7 @@ const A = {
       // Nei pasti di oggi e dei giorni dopo l'ingrediente resta, come provvisorio da comprare.
       const today = iso(new Date());
       state.items = state.items.filter(i => i.id!==id);
-      state.meals.forEach(m => { m.ing = m.ing.flatMap(g => g.itemId!==id ? [g] : m.date>=today && isFood(it) ? [{name:it.name, qty:roundMeal(+g.qty, it.unit), unit:mealUnit(it.unit), plan:true}] : []); });
+      state.meals.forEach(m => { m.ing = m.ing.flatMap(g => g.itemId!==id ? [g] : m.date>=today && isFood(it) ? [g.qty>0 ? {name:it.name, qty:roundMeal(+g.qty, it.unit), unit:mealUnit(it.unit), plan:true} : {name:it.name, qty:null, unit:null, plan:true}] : []); });
       state.meals = state.meals.filter(m => m.ing.length || m.name);
     });
   },
@@ -2081,7 +2177,8 @@ const A = {
   pantryCat: el => { ui.pantryCat = el.dataset.cat; render(); },
   kwCat: el => { ui.kwCat = el.dataset.cat; render(); },
   keptToList: el => { const it = itemById(el.dataset.id); if(it){ addToList(it.name, catOf(it)==="loose" ? "food" : catOf(it)); commit(); toast(T().tToList(it.name)); } },
-  keptDone: el => { const it = itemById(el.dataset.id); if(it) withUndo(T().tKeptDone(it.name), () => { state.items = state.items.filter(i => i.id!==it.id); }); },
+  keptDone: el => { const it = itemById(el.dataset.id); if(it) withUndo(T().tKeptDone(it.name), () => finishNoQty(it)); },
+  toggleHome: () => { state.settings.homeMode = !state.settings.homeMode; commit(); toast(state.settings.homeMode ? T().tHomeOn : T().tHomeOff); },
   editListItem: el => openListItem(el.dataset.id),
   delListItem: el => withUndo(T().tListRemoved, () => { state.list = state.list.filter(i => i.id!==el.dataset.id); }),
   endShop: () => openEndShop(),
